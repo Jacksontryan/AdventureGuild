@@ -1,0 +1,121 @@
+package project.Map;
+
+import javafx.application.Application;
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+
+import java.util.ArrayList;
+
+public class Map2Testing extends Application {
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+
+        final double[] scale = {1.0};
+        AnchorPane pane = new AnchorPane();
+        Scene scene = new Scene(pane);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Map2Testing");
+        primaryStage.show();
+
+        final Map2[] map = {new Map2(1500, 1000, .3)};
+        Canvas canvas = new Canvas(1500,1000);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        colorMap(gc, map[0].getMap());
+        pane.getChildren().add(canvas);
+
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if (keyEvent.getCode() == KeyCode.Z) {
+                    scale[0] *= 1.5;
+                    pane.setScaleX(scale[0]);
+                    pane.setScaleY(scale[0]);
+                }else if (keyEvent.getCode() == KeyCode.X) {
+                    scale[0] /= 1.5;
+                    pane.setScaleX(scale[0]);
+                    pane.setScaleY(scale[0]);
+                }else if (keyEvent.getCode() == KeyCode.UP) {
+                    pane.setLayoutY(pane.getLayoutY() + 25);
+                }else if (keyEvent.getCode() == KeyCode.DOWN) {
+                    pane.setLayoutY(pane.getLayoutY() - 25);
+                }else if (keyEvent.getCode() == KeyCode.LEFT) {
+                    pane.setLayoutX(pane.getLayoutX() + 25);
+                }else if (keyEvent.getCode() == KeyCode.RIGHT) {
+                    pane.setLayoutX(pane.getLayoutX() - 25);
+                }
+                keyEvent.consume();
+            }
+        });
+
+        Button newMapButton = new Button("New Map");
+        pane.getChildren().add(newMapButton);
+        newMapButton.setLayoutX(0);
+        newMapButton.setLayoutY(0);
+        newMapButton.setOnMouseClicked((event) -> {
+            map[0] = new Map2(1500, 1000, .3);
+            colorMap(gc, map[0].getMap());
+            ArrayList<Map2.Point> coast = map[0].getCoast();
+            for (int i = 0; i < coast.size(); i++) {
+                gc.setFill(Color.PINK);
+                gc.fillRect(coast.get(i).getX(), coast.get(i).getY(), 1, 1);
+            }
+        });
+
+        Button trimButton = new Button("Trim");
+        pane.getChildren().add(trimButton);
+        trimButton.setLayoutX(0);
+        trimButton.setLayoutY(40);
+        trimButton.setOnMouseClicked((event) -> {
+            map[0].trimMap();
+            canvas.setHeight(map[0].getMap()[0].length);
+            canvas.setWidth(map[0].getMap().length);
+            colorMap(gc, map[0].getMap());
+            ArrayList<Map2.Point> coast = map[0].getCoast();
+            for (int i = 0; i < coast.size(); i++) {
+                gc.setFill(Color.PINK);
+                gc.fillRect(coast.get(i).getX(), coast.get(i).getY(), 1, 1);
+            }
+        });
+
+        ArrayList<Map2.Point> coast = map[0].getCoast();
+        for (int i = 0; i < coast.size(); i++) {
+            gc.setFill(Color.PINK);
+            gc.fillRect(coast.get(i).getX(), coast.get(i).getY(), 1, 1);
+        }
+
+
+    }
+
+    private void colorMap(GraphicsContext gc, char[][] map) {
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map[i].length; j++) {
+                if(map[i][j]=='l'){
+                    gc.setFill(Color.GREEN);
+                    gc.fillRect(i, j, 1, 1);
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(0.1);
+                    gc.strokeRect(i, j, 1, 1);
+                }else if(map[i][j]=='w'){
+                    gc.setFill(Color.BLUE);
+                    gc.fillRect(i, j, 1, 1);
+                }else if(map[i][j]=='m'){
+                    gc.setFill(Color.RED);
+                    gc.fillRect(i, j, 1, 1);
+                }
+            }
+        }
+    }
+}

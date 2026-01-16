@@ -5,6 +5,16 @@ public enum Directions {
     Up,
     Down,
     Left,
-    Right
+    Right,
+
+    North,
+    South,
+    West,
+    East,
+
+    NorthEast,
+    SouthEast,
+    NorthWest,
+    SouthWest
 
 }

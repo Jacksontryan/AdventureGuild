@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 
-public class Map2Testing extends Application {
+public class MapTesting extends Application {
 
     public static void main(String[] args) {
         launch(args);
@@ -27,10 +27,12 @@ public class Map2Testing extends Application {
         AnchorPane pane = new AnchorPane();
         Scene scene = new Scene(pane);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Map2Testing");
+        primaryStage.setTitle("MapTesting");
         primaryStage.show();
+        double width = primaryStage.getWidth();
+        double height = primaryStage.getHeight();
 
-        final Map2[] map = {new Map2(1500, 1000, .3)};
+        final Map[] map = {new Map(1500, 1000, .3)};
         Canvas canvas = new Canvas(1500,1000);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         colorMap(gc, map[0].getMap());
@@ -65,9 +67,19 @@ public class Map2Testing extends Application {
         newMapButton.setLayoutX(0);
         newMapButton.setLayoutY(0);
         newMapButton.setOnMouseClicked((event) -> {
-            map[0] = new Map2(1500, 1000, .3);
+            map[0] = new Map(1500, 1000, .3);
+            canvas.setHeight(1000);
+            canvas.setWidth(1500);
+            pane.setMaxWidth(1500);
+            pane.setMinWidth(1500);
+            pane.setPrefWidth(1500);
+            pane.setPrefHeight(1000);
+            pane.setMinHeight(1000);
+            pane.setMaxHeight(1000);
+            primaryStage.setHeight(height);
+            primaryStage.setWidth(width);
             colorMap(gc, map[0].getMap());
-            ArrayList<Map2.Point> coast = map[0].getCoast();
+            ArrayList<Map.Point> coast = map[0].getCoast();
             for (int i = 0; i < coast.size(); i++) {
                 gc.setFill(Color.PINK);
                 gc.fillRect(coast.get(i).getX(), coast.get(i).getY(), 1, 1);
@@ -82,15 +94,23 @@ public class Map2Testing extends Application {
             map[0].trimMap();
             canvas.setHeight(map[0].getMap()[0].length);
             canvas.setWidth(map[0].getMap().length);
+            pane.setMaxWidth(map[0].getMap().length);
+            pane.setMinWidth(map[0].getMap().length);
+            pane.setPrefWidth(map[0].getMap().length);
+            pane.setMinHeight(map[0].getMap()[0].length);
+            pane.setMaxHeight(map[0].getMap()[0].length);
+            pane.setPrefHeight(map[0].getMap()[0].length);
+            primaryStage.setHeight(map[0].getMap()[0].length);
+            primaryStage.setWidth(map[0].getMap().length);
             colorMap(gc, map[0].getMap());
-            ArrayList<Map2.Point> coast = map[0].getCoast();
+            ArrayList<Map.Point> coast = map[0].getCoast();
             for (int i = 0; i < coast.size(); i++) {
                 gc.setFill(Color.PINK);
                 gc.fillRect(coast.get(i).getX(), coast.get(i).getY(), 1, 1);
             }
         });
 
-        ArrayList<Map2.Point> coast = map[0].getCoast();
+        ArrayList<Map.Point> coast = map[0].getCoast();
         for (int i = 0; i < coast.size(); i++) {
             gc.setFill(Color.PINK);
             gc.fillRect(coast.get(i).getX(), coast.get(i).getY(), 1, 1);
@@ -103,6 +123,18 @@ public class Map2Testing extends Application {
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map[i].length; j++) {
                 if(map[i][j]=='l'){
+                    gc.setFill(Color.FORESTGREEN);
+                    gc.fillRect(i, j, 1, 1);
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(0.1);
+                    gc.strokeRect(i, j, 1, 1);
+                }else if(map[i][j]=='h'){
+                    gc.setFill(Color.DARKGREEN);
+                    gc.fillRect(i, j, 1, 1);
+                    gc.setStroke(Color.BLACK);
+                    gc.setLineWidth(0.1);
+                    gc.strokeRect(i, j, 1, 1);
+                }else if(map[i][j]=='o') {
                     gc.setFill(Color.GREEN);
                     gc.fillRect(i, j, 1, 1);
                     gc.setStroke(Color.BLACK);
@@ -113,6 +145,9 @@ public class Map2Testing extends Application {
                     gc.fillRect(i, j, 1, 1);
                 }else if(map[i][j]=='m'){
                     gc.setFill(Color.RED);
+                    gc.fillRect(i, j, 1, 1);
+                } else if (map[i][j] == 'p') {
+                    gc.setFill(Color.YELLOW);
                     gc.fillRect(i, j, 1, 1);
                 }
             }

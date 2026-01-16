@@ -1,38 +1,535 @@
 package project.Map;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Stack;
 
 public class Map {
 
+    //grid of floating point values that determine if cell is land or water
+    private double[][] grid;
+
+    //grid with map of land, water, cities ect
+    private char[][] map;
+
+    //array list of all points of the coast
+    private ArrayList<Point> coast;
+
+    //Array list of cities
+    private ArrayList<City> cities;
+
+    //array list of islands
+    private ArrayList<Island> islands;
+
+    //array list of water regions
+    private ArrayList<WaterRegion> waterRegions;
+
+    //threshold which determines if cell is land or not. Greater than threshold is land, less than or equal is water
+    private double threshold;
+
+    private PerlinNoise perlin;
+
+    public Map(int width, int height, double threshold){
+
+        //instantiate grid to the set size
+        this.grid = new double[width][height];
+
+        //set cities to new array list
+        this.cities = new ArrayList<City>();
+
+        //set threshold
+        this.threshold = threshold;
+
+        perlin = new PerlinNoise(System.currentTimeMillis());
+
+        //for each point in the grid, set the value of the grid to some value between 0 and 1 inclusive
+        for(int i = 0; i < width; i++){
+            for(int j = 0; j < height; j++){
+                this.grid[i][j] = Math.random();
+            }
+        }
+
+        //instantiate map variable
+        instantiateMap();
+
+    }
+
+    private void instantiateMap(){
+
+        //width of map
+        int width = this.grid.length;
+
+        //height of map
+        int height = this.grid[0].length;
+
+        //middle x position of map
+        double middleX = width / 2.0;
+
+        //middle y position of map
+        double middleY = height / 2.0;
+
+        //new Point created in middle of map
+        Point middle = new Point(middleX, middleY);
+
+        //blank map created
+        map = new char[width][height];
+
+        //for each position on map going from left to right first, then up down
+        for(int i = 0; i < width; i++){
+            for(int j = 0; j < height; j++){
+
+                //Find distance of position (i,j) normalized from a grid centered on (0,0) in a grid from (-1,1) both horizontally and vertically
+
+                double newX = (i - middleX) / middleX;
+                double newY = (j - middleY) / middleY;
+
+                double distanceFromMiddleX = new Point(0,0).distance(new Point(newX, newY));
+
+                //create falloff. More falloff == bigger continent
+                double falloff = Math.pow(distanceFromMiddleX, 2);//<-- Experiment with making bigger and smaller continents with falloff variable
+
+                //Get a raw value that determines if position (i,j) is land or water based on the determined threshold
+                double value = grid[i][j] - falloff;//<-- Experiment with doing away with the value variable and assigning grid[i][j] to grid[i][j] - falloff to reuse the value later
+
+                if(value <= threshold){
+                    map[i][j] = 'w';
+                }else{
+                    map[i][j] = 'l';
+                }
+
+            }
+
+        }
+
+        //if cities have been created, add them to the map
+        instantiateCities();
+
+        //find all islands
+        getIslands();
+
+        //find all water regions
+        getWaterRegions();
+
+        //fill all islands to get one single continent. These last two lines can be swapped to make continents bigger or smaller
+        fillAllIslands();
+
+        //fill all water regions to get one single ocean
+        fillAllWaterRegions();
+
+        addHeightMap();
+
+        //instantiate the coast
+        instantiateCoast();
+
+    }
+
+    private void instantiateCoast(){
+        coast = new ArrayList<Point>();
+        for(int i = 0; i < map.length; i++){
+            for(int j = 0; j < map[0].length; j++){
+                if((map[i][j] == 'l' || map[i][j] == 'h' || map[i][j] == 'i' || map[i][j] == 'o') && !new Point(i, j).getWaterNeighbors().isEmpty()){
+                    coast.add(new Point(i, j));
+                }
+            }
+        }
+    }
+
+    /*private void addHeightMap(){
+        for(int i = 0; i < grid.length; i++){
+            for(int j = 0; j < grid[0].length; j++){
+                if(map[i][j] == 'w'){
+                    grid[i][j] = Math.random() * .3;
+                }else if(map[i][j] == 'l'){
+                    grid[i][j] = Math.random() * .7 + .3;
+                }
+            }
+        }
+    }*/
+
+    private void instantiateCities(){
+
+        //for each city in array cities
+        for (City city : this.cities) {
+
+            //get all points the city supposedly occupies
+            ArrayList<Point> points = city.getPoints();
+
+            //create a list of all points not occupied by city
+            ArrayList<Point> markForDeletion = new ArrayList<Point>();
+
+            //for each point the city supposedly occupies
+            for (Point point : points) {
+
+                //if is land -> mark as city land, else -> mark for deletion
+                if (map[(int) point.x][(int) point.y] == 'l') {
+                    map[(int) point.x][(int) point.y] = 'c';
+                } else {
+                    markForDeletion.add(point);
+                }
+            }
+
+            //delete unwanted points
+            points.removeAll(markForDeletion);
+
+        }
+    }
+
+    private void getIslands(){
+
+        //find width and height
+        int width = this.grid.length;
+        int height = this.grid[0].length;
+
+        //create a grid of visited points
+        boolean[][] visited =  new boolean[width][height];
+
+        //create island array list
+        islands = new ArrayList<Island>();
+
+        //for each point (i,j) in the grid
+        for(int i = 0; i < width; i++){
+            for(int j = 0; j < height; j++){
+
+                //if (i,j) has not been visited and is land
+                if(!visited[i][j] && map[i][j] == 'l'){
+
+                    //create array list of points in the island
+                    ArrayList<Point> points = new ArrayList<Point>();
+
+                    //create stack of points needed to travel to
+                    Stack<Point> pointsToTravel = new Stack<Point>();
+
+                    //create two arrays of all points surrounding (i,j) to the left, right, up and down
+                    int[] xTraversal = {-1,0,0,1};
+                    int[] yTraversal = {0,-1,1,0};
+
+                    //add point (i,j) to points to travel stack
+                    pointsToTravel.push(new Point(i,j));
+
+                    //repeat while points to travel stack is empty
+                    while(!pointsToTravel.isEmpty()){
+
+                        //pop the top point, get x and y coordinate
+                        Point point = pointsToTravel.pop();
+                        int x = point.getX();
+                        int y = point.getY();
+
+                        //if visited (x,y) and (x,y) is land
+                        if(!visited[x][y] && map[x][y] == 'l'){
+
+                            //set visited[x][y] to true
+                            visited[x][y] = true;
+
+                            //add point to points array list
+                            points.add(point);
+
+                            //for each point in the two directional traversal arrays
+                            for(int k = 0; k < 4; k++){
+
+                                //add each point to each side to the stack
+                                pointsToTravel.push(new Point(x + xTraversal[k], y +  yTraversal[k]));
+                            }
+                        }
+                    }
+
+                    //create a new island in the island arrays and set its points array to the one set earlier
+                    islands.add(new Island(points));
+                }
+            }
+        }
+    }
+
+    private void getWaterRegions(){
+
+        //get width and height of grid
+        int width = this.grid.length;
+        int height = this.grid[0].length;
+
+        //create a grid of visited points
+        boolean[][] visited =  new boolean[width][height];
+
+        //instantiate the water region variable
+        waterRegions = new ArrayList<WaterRegion>();
+
+        //for each point in the grid
+        for(int i = 0; i < width; i++){
+            for(int j = 0; j < height; j++){
+
+                //if point (i,j) has not been visited and is water
+                if(!visited[i][j] && map[i][j] == 'w'){
+
+                    //create a new array list of points in the water region
+                    ArrayList<Point> points = new ArrayList<Point>();
+
+                    //create a stack of points yet to be traveled to
+                    Stack<Point> pointsToTravel = new Stack<Point>();
+
+                    //push (i,j) to points to be traveled to
+                    pointsToTravel.push(new Point(i,j));
+
+                    //while points to travel to has points
+                    while(!pointsToTravel.isEmpty()){
+
+                        //pop the top point
+                        Point point = pointsToTravel.pop();
+                        int x = point.getX();
+                        int y = point.getY();
+
+                        //if you have not visited point (x,y) and that point on the map is water
+                        if(!visited[x][y] && map[x][y] == 'w'){
+
+                            //set that you have visited point (x,y), add point to points
+                            visited[x][y] = true;
+                            points.add(point);
+
+                            //only push the points on the appropriate sides of each point.
+                            // Ex, if at point (0,0), at the top left, there would be no need for the point above or left of it, as they do not exist
+                            if(x == 0){
+                                pointsToTravel.push(new Point(x + 1, y));
+                            }else if(x == width - 1){
+                                pointsToTravel.push(new Point(x - 1, y));
+                            }else{
+                                pointsToTravel.push(new Point(x - 1, y));
+                                pointsToTravel.push(new Point(x + 1, y));
+                            }
+
+                            if(y == 0){
+                                pointsToTravel.push(new Point(x, y + 1));
+                            }else if(y == height - 1){
+                                pointsToTravel.push(new Point(x, y - 1));
+                            }else{
+                                pointsToTravel.push(new Point(x, y - 1));
+                                pointsToTravel.push(new Point(x, y + 1));
+                            }
+                        }
+                    }
+
+                    //add a new water region composed of the array list of points to the list of water region
+                    waterRegions.add(new WaterRegion(points));
+                }
+            }
+        }
+    }
+
+    private void fillAllIslands(){
+
+        //set the largest size to 0, and set a largestIsland to null
+        int largest = 0;
+        Island largestIsland = null;
+
+        //for each island in islands
+        for(Island island : islands){
+
+            //the size of the island is greater than the current largest island
+            if(island.getSize() > largest){
+
+                //set the largest size to the island size and largestIsland to the current island
+                largest = island.getSize();
+                largestIsland = island;
+
+            }
+        }
+
+        //for each island in islands
+        for(Island island : islands){
+
+            //if current island size is not the largest, fill island
+            if(!(island.getSize() == largest)){
+
+                island.fillIsland();
+
+            }
+        }
+
+        //remove filled islands
+        getIslands();
+
+        //reinstate the water regions
+        getWaterRegions();
+    }
+
+    private void fillAllWaterRegions(){
+
+        //set largest to 0, and the largest water region to null
+        int largest = 0;
+        WaterRegion largestWaterRegion = null;
+
+        //for each water region in water regions
+        for(WaterRegion w : waterRegions){
+
+            //if the size of current water region is greater than largest, set the largest size to the current size and largest water region to current water region
+            if(w.getSize() > largest){
+                largest = w.getSize();
+                largestWaterRegion = w;
+            }
+        }
+
+        //for each water region in water regions, if water region size is not the largest size, fill the water region
+        for(WaterRegion w : waterRegions){
+            if(!(w.getSize() == largest)){
+                w.fillWaterRegion();
+            }
+        }
+
+        //remove all filled water region
+        getWaterRegions();
+
+        //redraw the islands
+        getIslands();
+    }
+
+    public int getLeftMostCoordinate(){
+        int width = map.length;
+        int height = map[0].length;
+
+        int leftmost = width;
+
+        for(int x = 0; x < leftmost; x++){
+            for(int y = 0; y < height; y++){
+                if(map[x][y] == 'l'){
+                    leftmost = x;
+                }
+            }
+        }
+
+        return leftmost;
+    }
+
+    public int getRightMostCoordinate(){
+        int width = map.length;
+        int height = map[0].length;
+
+        int rightmost = 0;
+
+        for(int x = width - 1; x >= rightmost; x--){
+            for(int y = 0; y < height; y++){
+                if(map[x][y] == 'l'){
+                    rightmost = x;
+                }
+            }
+        }
+
+        return rightmost;
+    }
+
+    public int getTopMostCoordinate(){
+        int width = map.length;
+        int height = map[0].length;
+        int topmost = height;
+        for(int x = 0; x < width; x++){
+            for(int y = 0; y < topmost; y++){
+                if(map[x][y] == 'l'){
+                    topmost = y;
+                }
+            }
+        }
+
+        return topmost;
+    }
+
+    public int getBottomMostCoordinate(){
+        int width = map.length;
+        int height = map[0].length;
+        int bottommost = 0;
+        for(int x = 0; x < width; x++){
+            for(int y = height - 1; y >= bottommost; y--){
+                if(map[x][y] == 'l'){
+                    bottommost = y;
+                }
+            }
+        }
+        return bottommost;
+    }
+
+    public void trimMap() {
+        int left = getLeftMostCoordinate() - 50;
+        int right = getRightMostCoordinate() + 50;
+        int top = getTopMostCoordinate() - 50;
+        int bottom = getBottomMostCoordinate() + 50;
+
+        int newWidth = right - left + 1;
+        int newHeight = bottom - top + 1;
+
+        char[][] temp = new char[newWidth][newHeight];
+        double[][] temp2 = new double[newWidth][newHeight];
+
+        for (int x = 0; x < newWidth; x++) {
+            for (int y = 0; y < newHeight; y++) {
+                temp[x][y] = map[left + x][top + y];
+                temp2[x][y] = grid[left + x][top + y];
+            }
+        }
+
+        map = temp;
+        instantiateCoast();
+    }
+
+    public char[][] getMap(){
+        return map;
+    }
+
+    public double getThreshold(){
+        return threshold;
+    }
+
+    public void setThreshold(double threshold){
+        this.threshold = threshold;
+    }
+
+    public ArrayList<City> getCities(){
+        return cities;
+    }
+
+    public ArrayList<WaterRegion> getAllWaterRegions(){
+        return waterRegions;
+    }
+
+    public ArrayList<Island> getAllIslands(){
+        return islands;
+    }
+
+    public ArrayList<Point> getCoast(){
+        return coast;
+    }
+
     public class Point{
 
-        int x, y;
+        //x and y coordinates
+        private final double x;
+        private final double y;
 
-        public Point(int x, int y){
+        public Point(double x, double y){
             this.x = x;
             this.y = y;
         }
 
-        public double distance(Point o){
-            return Math.sqrt(Math.pow(x - o.x, 2) + Math.pow(y - o.y, 2));
+        //get x position as a double value
+        public double getTrueX(){
+            return this.x;
         }
 
-        public String toString(){
-            return "(" + x + " " + y + ")";
+        //get y position as a double value
+        public double getTrueY(){
+            return this.y;
         }
 
-        public int getX(){
-            return x;
-        }
-
+        //get y value as an int value
         public int getY(){
-            return y;
+            return (int) this.y;
         }
 
+        //get x value as an int value
+        public int getX(){
+            return (int) this.x;
+        }
+
+        //distance formula
+        public double distance(Point p){
+            return Math.sqrt(Math.pow(this.x - p.x, 2) + Math.pow(this.y - p.y, 2));
+        }
+
+        //Array List of all points next to this point
         public ArrayList<Point> getNeighbors(){
+
             ArrayList<Point> neighbors = new ArrayList<Point>();
 
             if(!(x == 0)){
@@ -48,40 +545,44 @@ public class Map {
             return neighbors;
         }
 
+        //returns array list of points of all land neighbors
         public ArrayList<Point> getLandNeighbors(){
             ArrayList<Point> neighbors = getNeighbors();
             ArrayList<Point> landNeighbors = new ArrayList<Point>();
 
-            for(int i = 0; i < neighbors.size(); i++){
-                if(Map.this.map[neighbors.get(i).getX()][neighbors.get(i).getY()] == 'l' || Map.this.map[neighbors.get(i).getX()][neighbors.get(i).getY()] == 'c'){
-                    landNeighbors.add(neighbors.get(i));
+            for (Point neighbor : neighbors) {
+                if (Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'l' || Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'c') {
+                    landNeighbors.add(neighbor);
                 }
             }
 
             return landNeighbors;
         }
 
+        //returns array list of points of all water neighbors
         public ArrayList<Point> getWaterNeighbors() {
             ArrayList<Point> neighbors = getNeighbors();
             ArrayList<Point> waterNeighbors = new ArrayList<Point>();
 
-            for (int i = 0; i < neighbors.size(); i++) {
-                if (Map.this.map[neighbors.get(i).getX()][neighbors.get(i).getY()] == 'w') {
-                    waterNeighbors.add(neighbors.get(i));
+            for (Point neighbor : neighbors) {
+                if (Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'w') {
+                    waterNeighbors.add(neighbor);
                 }
             }
             return waterNeighbors;
         }
+
     }
 
-    public class Location{
+    public class Location {
+
         ArrayList<Point> points;
 
-        public Location(ArrayList<Point> points){
+        public Location(ArrayList<Point> points) {
             this.points = points;
         }
 
-        public ArrayList<Point> getPoints(){
+        public ArrayList<Point> getPoints() {
             return points;
         }
 
@@ -98,6 +599,33 @@ public class Map {
             return neighbors;
         }
 
+        public boolean touchesTop(){
+            for (Point p : points) {
+                if (p.getY() == 0) return true;
+            }
+            return false;
+        }
+
+        public boolean touchesBottom(){
+            for (Point p : points) {
+                if (p.getY() == Map.this.map[0].length - 1) return true;
+            }
+            return false;
+        }
+
+        public boolean touchesLeft(){
+            for (Point p : points) {
+                if (p.getX() == 0) return true;
+            }
+            return false;
+        }
+
+        public boolean touchesRight(){
+            for (Point p : points) {
+                if (p.getX() == Map.this.map[0].length - 1) return true;
+            }
+            return false;
+        }
     }
 
     public class City extends Location{
@@ -125,16 +653,12 @@ public class Map {
             return this.center;
         }
 
-        public ArrayList<Point> getPoints(){
-            return this.points;
-        }
-
         public String toString(){
-            String str = "";
-            for(int i = 0; i < points.size(); i++){
-                str += points.get(i).toString() + " ";
+            StringBuilder str = new StringBuilder();
+            for (Point point : points) {
+                str.append(point.toString()).append(" ");
             }
-            return str;
+            return str.toString();
         }
 
     }
@@ -145,613 +669,113 @@ public class Map {
             super(points);
         }
 
-        public ArrayList<Point> getPoints(){
-            return super.points;
-        }
-
         public int getSize(){
             return super.points.size();
         }
 
         public void fillIsland(){
-            for(int i = 0; i < this.points.size(); i++){
-                ArrayList<Point> waterNeighbors = points.get(i).getWaterNeighbors();
-
-                grid[points.get(i).x][points.get(i).y] = threshold - 1;
-                map[points.get(i).x][points.get(i).y] = 'w';
-
+            for (Point point : this.points) {
+                grid[(int) point.x][(int) point.y] = threshold - 1;
+                map[(int) point.x][(int) point.y] = 'w';
             }
         }
 
     }
 
-    public class Lake extends Location {
+    public class WaterRegion extends Location {
 
-        public Lake(ArrayList<Point> points){
+        public WaterRegion(ArrayList<Point> points){
             super(points);
-        }
-
-        public ArrayList<Point> getPoints(){
-            return super.points;
         }
 
         public int getSize(){
             return super.points.size();
         }
 
-        public void fillLake(){
-            for(int i = 0; i < this.points.size(); i++){
-                grid[points.get(i).x][points.get(i).y] = threshold + 1;
-                map[points.get(i).x][points.get(i).y] = 'l';
+        public void fillWaterRegion(){
+            for (Point point : this.points) {
+                grid[(int) point.x][(int) point.y] = threshold + 1;
+                map[(int) point.x][(int) point.y] = 'l';
             }
         }
 
     }
 
-    private double[][] grid;
-    private char[][] map;
-    private boolean[][] originalOcean;
-    private double threshold;
-    private ArrayList<City> cities =  new ArrayList<City>();
-    private ArrayList<Island> islands;
-    private ArrayList<Lake> lakes;
+    public class WaterTile extends Point{
 
-    public Map(int width, int height, double threshold){
-        this.grid = new double[width][height];
-        //this.grid = WorleyNoise.generate(width,height,300);
-        this.threshold = threshold;
-
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                this.grid[i][j] = Math.random();
-            }
+        public WaterTile(double x, double y) {
+            super(x, y);
+            Map.this.map[getX()][getY()] = 'w';
         }
-        instantiateMap();
-        islands = getAllIslands(map);
-        lakes = getAllLakes(map);
+
     }
 
-    public void fillAllIslands() {
-        boolean changed;
+    public class LandTile extends Point{
 
-        do {
-            changed = false;
+        public LandTile(double x, double y) {
+            super(x, y);
+            Map.this.map[getX()][getY()] = 'l';
+        }
 
-            // 1. Identify the mainland (largest island)
-            int biggest = 0;
-            Island mainland = null;
+    }
 
-            for (Island island : islands) {
-                if (island.getSize() > biggest) {
-                    biggest = island.getSize();
-                    mainland = island;
-                }
-            }
+    private void addHeightMap() {
 
-            // Safety: if no islands exist, stop
-            if (mainland == null) {
-                return;
-            }
+        double scale = 0.004;        // lower = bigger mountains
+        int octaves = 6;
+        double gain = 0.5;
+        double lacunarity = 2.0;
+        double max = 0;
 
-            // 2. Build a fast lookup set of mainland tiles
-            HashSet<Point> mainlandTiles = new HashSet<>(mainland.getPoints());
+        for (int x = 0; x < grid.length; x++) {
+            for (int y = 0; y < grid[0].length; y++) {
 
-            // 3. Remove all islands that are NOT the mainland
-            int i = 0;
-            while (i < islands.size()) {
-                Island island = islands.get(i);
-
-                // Skip the mainland island entirely
-                if (island == mainland) {
-                    i++;
+                if (map[x][y] == 'w') {
+                    grid[x][y] = 0;
                     continue;
                 }
 
-                // Extra safety: ensure no overlap with mainland
-                boolean overlapsMainland = false;
-                for (Point p : island.getPoints()) {
-                    if (mainlandTiles.contains(p)) {
-                        overlapsMainland = true;
-                        break;
-                    }
-                }
+                double nx = x * scale;
+                double ny = y * scale;
 
-                // If it's a true island, fill it
-                if (!overlapsMainland) {
-                    island.fillIsland();
-                    islands.remove(i);
-                    changed = true;
-                } else {
-                    i++;
-                }
-            }
+                double h = perlin.ridgedNoise(nx, ny, octaves, gain, lacunarity);
+                double belt = perlin.noise(x * 0.0008, y * 0.0008);
+                belt = (belt + 1) / 2.0; // normalize to 0–1
 
-            // 4. Recompute islands if anything changed
-            if (changed) {
-                islands = getAllIslands(map);
-            }
+                // Optional: exaggerate mountains
+                h *= belt;
 
-        } while (changed);
+                // Apply continent falloff
+                double dx = (x - grid.length / 2.0) / (grid.length / 2.0);
+                double dy = (y - grid[0].length / 2.0) / (grid[0].length / 2.0);
+                double dist = Math.sqrt(dx*dx + dy*dy);
+                double falloff = Math.pow(dist, 2.5);
 
-        lakes = getAllLakes(map);
-        islands = getAllIslands(map);
-
-        System.out.println("Num Islands: " + islands.size());
-        System.out.println("Num Lakes: " + lakes.size());
-    }
-
-    public void fillAllLakes() {
-        boolean changed;
-
-        do {
-            changed = false;
-            int biggest = 0;
-
-            for (Lake lake : lakes) {
-                if (lake.getSize() > biggest) {
-                    biggest = lake.getSize();
-                }
-            }
-
-            int i = 0;
-            while (i < lakes.size()) {
-                if (lakes.get(i).getSize() != biggest) {
-                    lakes.get(i).fillLake();
-                    lakes.remove(i);
-                    changed = true;
-                } else {
-                    i++;
-                }
-            }
-
-            if (changed) {
-                lakes = getAllLakes(map);
-            }
-
-        } while (changed);
-
-        lakes = getAllLakes(map);
-        islands = getAllIslands(map);
-        System.out.println("Num Lakes: " + lakes.size());
-        System.out.println("Num Islands: " + islands.size());
-    }
-
-    public char[][] getMap(){
-        return this.map;
-    }
-
-    public double getThreshold(){
-        return this.threshold;
-    }
-
-    public void setThreshold(double threshold){
-        this.threshold = threshold;
-        this.instantiateMap();
-    }
-
-    public ArrayList<City> getCities(){
-        return this.cities;
-    }
-
-
-    public ArrayList<Island> getAllIslands(char[][] map) {
-        int width = map.length;
-        int height = map[0].length;
-
-        boolean[][] visited = new boolean[width][height];
-        ArrayList<Island> islands = new ArrayList<>();
-
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-
-                if (map[x][y] == 'l' && !visited[x][y]) {
-                    ArrayList<Point> island = islandFloodCollect(x, y, map, visited);
-                    Island i = new Island(island);
-                    islands.add(i);
+                grid[x][y] = Math.max(0, h - falloff);
+                if(max < grid[x][y]){
+                    max = grid[x][y];
                 }
             }
         }
+        //max -= (max/5);
+        double slope = max - (max / 5);
+        double peak = max - (max / 10);
+        double highlands = max - (max / 3);
+        double lowlands = max - (max / 2);
 
-        return islands;
-    }
-
-    private ArrayList<Point> islandFloodCollect(int sx, int sy, char[][] map, boolean[][] visited) {
-        ArrayList<Point> island = new ArrayList<>();
-        Stack<Point> stack = new Stack<>();
-
-        int width = map.length;
-        int height = map[0].length;
-
-        int[] dx = {-1,0,0,1};
-        int[] dy = {0,-1,1,0};
-
-        stack.push(new Point(sx, sy));
-
-        while (!stack.isEmpty()) {
-            Point p = stack.pop();
-            int x = p.x;
-            int y = p.y;
-
-            if (x < 0 || x >= width || y < 0 || y >= height)
-                continue;
-
-            if (visited[x][y])
-                continue;
-
-            if (map[x][y] != 'l')
-                continue;
-
-            visited[x][y] = true;
-            island.add(p);
-
-            for (int i = 0; i < 4; i++) {
-                stack.push(new Point(x + dx[i], y + dy[i]));
-            }
-        }
-
-        return island;
-    }
-
-    private boolean touchesBorder(ArrayList<Point> region, int width, int height) {
-        for (Point p : region) {
-            if (p.x == 0 || p.x == width - 1 || p.y == 0 || p.y == height - 1) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean[][] markOcean(char[][] map) {
-        int width = map.length;
-        int height = map[0].length;
-
-        boolean[][] ocean = new boolean[width][height];
-        Stack<Point> stack = new Stack<>();
-
-        // Push all border water tiles
-        for (int x = 0; x < width; x++) {
-            if (map[x][0] == 'w') stack.push(new Point(x, 0));
-            if (map[x][height - 1] == 'w') stack.push(new Point(x, height - 1));
-        }
-        for (int y = 0; y < height; y++) {
-            if (map[0][y] == 'w') stack.push(new Point(0, y));
-            if (map[width - 1][y] == 'w') stack.push(new Point(width - 1, y));
-        }
-
-        // Flood fill ocean
-        while (!stack.isEmpty()) {
-            Point p = stack.pop();
-            int x = p.x;
-            int y = p.y;
-
-            if (x < 0 || x >= width || y < 0 || y >= height) continue;
-            if (ocean[x][y]) continue;
-            if (map[x][y] != 'w') continue;
-
-            ocean[x][y] = true;
-
-            stack.push(new Point(x + 1, y));
-            stack.push(new Point(x - 1, y));
-            stack.push(new Point(x, y + 1));
-            stack.push(new Point(x, y - 1));
-        }
-
-        return ocean;
-    }
-
-    public ArrayList<Point> getCoast(){
-        ArrayList<Point> coast = new ArrayList<>();
-        for(int i = 0; i < this.map.length; i++){
-            for(int j = 0; j < this.map[0].length; j++){
-                if((this.map[i][j] == 'l' || this.map[i][j] == 'c')){
-                    for(Point neighbor: new Point(i,j).getNeighbors()){
-                        if(this.map[neighbor.x][neighbor.y] == 'w'){
-                            coast.add(neighbor);
-                        }
-                        break;
-                    }
+        for(int x = 0; x < grid.length; x++){
+            for(int y = 0; y < grid[0].length; y++){
+                if(grid[x][y] > lowlands){
+                    map[x][y] = 'o';
+                }if(grid[x][y] > highlands){
+                    map[x][y] = 'h';
+                }if(grid[x][y] > slope){
+                    map[x][y] = 'm';
+                }if(grid[x][y] > peak){
+                    map[x][y] = 'p';
                 }
             }
         }
-        return coast;
-    }
-
-    public ArrayList<Lake> getAllLakes(char[][] map) {
-        int width = map.length;
-        int height = map[0].length;
-
-        boolean[][] visited = new boolean[width][height];
-        boolean[][] ocean = originalOcean;
-
-        ArrayList<Lake> lakes = new ArrayList<>();
-
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-
-                // Skip ocean water entirely
-                if (map[x][y] == 'w' && !ocean[x][y] && !visited[x][y]) {
-
-                    ArrayList<Point> points = lakeFloodCollect(x, y, map, visited);
-
-                    // This is guaranteed to be a lake
-                    lakes.add(new Lake(points));
-                }
-            }
-        }
-
-        return lakes;
-    }
-
-    private ArrayList<Point> lakeFloodCollect(int sx, int sy, char[][] map, boolean[][] visited) {
-        ArrayList<Point> lake = new ArrayList<>();
-        Stack<Point> stack = new Stack<>();
-
-        stack.push(new Point(sx, sy));
-
-        while (!stack.isEmpty()) {
-            Point p = stack.pop();
-            int x = p.x;
-            int y = p.y;
-
-            // bounds check
-            if (x < 0 || x >= map.length || y < 0 || y >= map[0].length)
-                continue;
-
-            // already processed
-            if (visited[x][y])
-                continue;
-
-            // ❗ FIXED: must be water, not land
-            if (map[x][y] != 'w')
-                continue;
-
-            visited[x][y] = true;
-            lake.add(p);
-
-            // explore neighbors
-            stack.push(new Point(x + 1, y));
-            stack.push(new Point(x - 1, y));
-            stack.push(new Point(x, y + 1));
-            stack.push(new Point(x, y - 1));
-        }
-
-        return lake;
-    }
-
-
-    public void instantiateMap(){
-        int width = grid.length;
-        int height = grid[0].length;
-        map = new char[width][height];
-        originalOcean = markOcean(map);
-
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-
-
-                double nx = (i - width / 2.0) / (width / 2.0);
-                double ny = (j - height / 2.0) / (height / 2.0);
-                double distance = Math.sqrt(nx * nx + ny * ny);
-
-                //double value = grid[i][j] - distance;
-
-                double falloff = Math.pow(distance, 2);
-                double value = grid[i][j] - falloff;
-
-
-                if (value > threshold) {
-                    map[i][j] = 'l';
-                } else {
-                    map[i][j] = 'w';
-                }
-            }
-        }
-        if(!cities.isEmpty()) {
-
-            int count = 0;
-            while(count < cities.size()) {
-                City c = cities.get(count);
-                ArrayList<Point> points = c.getPoints();
-                for(int i = 0; i < points.size(); i++){
-                    Point p = points.get(i);
-                    if(map[p.x][p.y] == 'l'){
-                        map[p.x][p.y] = 'c';
-                    }else{
-                        points.remove(p);
-                        i--;
-                        if(c.getPoints().isEmpty()) {
-                            cities.remove(c);
-                            count--;
-                        }
-                    }
-                }
-                count++;
-            }
-
-        }
-        lakes = getAllLakes(map);
-        islands = getAllIslands(map);
-    }
-
-    public void blur(int iterations) {
-        int w = grid.length;
-        int h = grid[0].length;
-
-        for (int it = 0; it < iterations; it++) {
-            double[][] temp = new double[w][h];
-
-            for (int x = 0; x < w; x++) {
-                for (int y = 0; y < h; y++) {
-
-                    double sum = 0;
-                    int count = 0;
-
-                    for (int dx = -1; dx <= 1; dx++) {
-                        for (int dy = -1; dy <= 1; dy++) {
-                            int nx = x + dx;
-                            int ny = y + dy;
-
-                            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-                                sum += grid[nx][ny];
-                                count++;
-                            }
-                        }
-                    }
-                    temp[x][y] = sum / count;
-                }
-            }
-            grid = temp;
-        }
-        instantiateMap();
-    }
-
-    public void addCities(int numCities) {
-
-        //cities = new ArrayList<>();
-        Random rand = new Random();
-        int size =  numCities + cities.size();
-
-        while (cities.size() < size) {
-
-            int x = rand.nextInt(map.length);
-            int y = rand.nextInt(map[0].length);
-
-            if (map[x][y] != 'l') continue;
-
-            Point p = new Point(x, y);
-
-            boolean valid = cities.stream().allMatch(c -> c.getCenter().distance(p) > 50);
-
-            if (valid) {
-                createCity("TEMP", x, y);
-            }
-        }
-    }
-
-    private void createCity(String name, int x, int y) {
-        Point center = new Point(x, y);
-        ArrayList<Point> points = new ArrayList<Point>();
-        for(int width = -5; width <= 5; width++){
-            for(int height = -5; height <= 5; height++){
-                if(map[x+width][y+height] == 'l'){
-                    points.add(new Point(x + width, y + height));
-                    map[x+width][y+height] = 'c';
-                }
-            }
-        }
-        cities.add(new City(name, center, points));
-    }
-
-    public int getLeftMostCoordinate() {
-        int width = map.length;
-        int height = map[0].length;
-
-        int leftMost = width; // start beyond right edge
-
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                if (map[x][y] == 'l') {
-                    leftMost = x;
-                    return leftMost; // earliest possible, so return immediately
-                }
-            }
-        }
-        return leftMost;
-    }
-
-    public int getRightMostCoordinate() {
-        int width = map.length;
-        int height = map[0].length;
-
-        int rightMost = 0;
-
-        for (int x = width - 1; x >= 0; x--) {
-            for (int y = 0; y < height; y++) {
-                if (map[x][y] == 'l') {
-                    rightMost = x;
-                    return rightMost;
-                }
-            }
-        }
-        return rightMost;
-    }
-
-    public int getTopMostCoordinate() {
-        int width = map.length;
-        int height = map[0].length;
-
-        int topMost = height;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (map[x][y] == 'l') {
-                    topMost = y;
-                    return topMost;
-                }
-            }
-        }
-        return topMost;
-    }
-
-    public int getBottomMostCoordinate() {
-        int width = map.length;
-        int height = map[0].length;
-
-        int bottomMost = 0;
-
-        for (int y = height - 1; y >= 0; y--) {
-            for (int x = 0; x < width; x++) {
-                if (map[x][y] == 'l') {
-                    bottomMost = y;
-                    return bottomMost;
-                }
-            }
-        }
-        return bottomMost;
-    }
-
-    public void saveMap() throws FileNotFoundException {
-        File directory = new File("src\\main\\java\\project\\Map\\Maps");
-        int fileNumber = directory.list().length;
-        File file = new File("src\\main\\java\\project\\Map\\Maps\\map" +  fileNumber + ".txt");
-        PrintWriter pw = new PrintWriter(file);
-
-        for(int x = 0; x < map.length; x++){
-            pw.print(map[x][0]);
-            for(int y = 1; y < map[0].length; y++){
-                pw.print(map[x][y]);
-            }
-            pw.println();
-        }
-
-        pw.close();
-    }
-
-    public void trimMap() {
-        int leftMost = getLeftMostCoordinate() - 50;
-        //System.out.println("Left most coordinate: " + leftMost);
-        int rightMost = getRightMostCoordinate() + 50;
-        //System.out.println("Right most coordinate: " + rightMost);
-        int topMost = getTopMostCoordinate() - 50;
-        //System.out.println("Top most coordinate: " + topMost);
-        int bottomMost = getBottomMostCoordinate() + 50;
-        //System.out.println("Bottom most coordinate: " + bottomMost);
-
-        int newWidth = rightMost - leftMost + 1;    // inclusive
-        int newHeight = bottomMost - topMost + 1;   // inclusive
-
-        char[][] temp = new char[newWidth][newHeight];
-        double[][] temp2 = new double[newWidth][newHeight];
-
-        // x = old x, y = old y
-        for (int x = leftMost; x <= rightMost; x++) {
-            // copy the y‑segment [topMost..bottomMost] from this column
-            System.arraycopy(map[x], topMost, temp[x - leftMost], 0, newHeight);
-            System.arraycopy(grid[x], topMost, temp2[x - leftMost], 0, newHeight);
-        }
-
-        map = temp;
-        grid = temp2;
     }
 
 }

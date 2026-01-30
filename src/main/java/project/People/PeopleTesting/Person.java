@@ -1,0 +1,406 @@
+package project.People.PeopleTesting;
+
+import project.People.DNA;
+
+import java.util.ArrayList;
+import java.util.Random;
+
+public class Person {
+
+    private String name;
+
+    private Race race;
+
+    private DNA dna;
+
+    private Sex sex;
+
+    private int age;
+
+    private Person partner;
+    public Person fatherOfCurrentChild;
+
+    private ArrayList<Person> children;
+
+    private Person mother;
+    private Person father;
+
+    private int weeksPregnant;
+
+    private boolean alive;
+    private boolean working;
+
+    private House house;
+
+    public Person() {
+
+        this.name = "TEMP";
+
+        ArrayList<Race> races = Race.instantiateRaces();
+
+        Random rand = new Random();
+
+        this.race = races.get(rand.nextInt(races.size()));
+
+        dna = new DNA(this.race.getRaceNum());
+
+        sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+
+        age = 0;
+
+        partner = null;
+        fatherOfCurrentChild = null;
+
+        children = new ArrayList<Person>();
+
+        mother = null;
+        father = null;
+
+        weeksPregnant = -1;
+
+        alive = true;
+        working = false;
+
+        house = null;
+
+    }
+
+    public Person(String name){
+
+        this.name = name;
+
+        ArrayList<Race> races = Race.instantiateRaces();
+
+        Random rand = new Random();
+
+        this.race = races.get(rand.nextInt(races.size()));
+
+        dna = new DNA(this.race.getRaceNum());
+
+        sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+
+        age = 0;
+
+        partner = null;
+        fatherOfCurrentChild = null;
+
+        children = new ArrayList<Person>();
+
+        mother = null;
+        father = null;
+
+        weeksPregnant = -1;
+
+        alive = true;
+        working = false;
+
+        house = null;
+
+    }
+
+    public Person(String name, Race race){
+
+        this.name = name;
+
+        this.race = race;
+
+        this.dna = new DNA(this.race.getRaceNum());
+
+        Random rand = new Random();
+
+        sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+
+        age = rand.nextInt(race.getAverageLifespan());
+
+        partner = null;
+        fatherOfCurrentChild = null;
+
+        children = new ArrayList<Person>();
+
+        mother = null;
+        father = null;
+
+        weeksPregnant = -1;
+
+        alive = true;
+        working = false;
+
+        house = null;
+
+    }
+
+    public Person(String name, Race race, DNA dna){
+        this.name = name;
+
+        this.race = race;
+
+        this.dna = dna;
+
+        Random rand = new Random();
+
+        this.sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+
+        this.age = 0;
+
+        partner = null;
+
+        children = new ArrayList<Person>();
+
+        mother = null;
+        father = null;
+
+        weeksPregnant = -1;
+
+        alive = true;
+        working = false;
+
+        house = null;
+    }
+
+    public Person(String name, Race race, DNA dna, Sex sex, int age){
+        this.name = name;
+
+        this.race = race;
+
+        this.dna = dna;
+
+        this.sex = sex;
+
+        this.age = age;
+
+        this.partner = null;
+
+        this.children = new ArrayList<Person>();
+
+        this.mother = null;
+        this.father = null;
+
+        this.weeksPregnant = -1;
+
+        this.alive = true;
+        this.working = false;
+
+        house = null;
+
+    }
+
+    public Person(String name, Person mother, Person father){
+
+        if(mother.sex != Sex.Female || father.sex != Sex.Male || father.race != mother.race){
+            throw new IllegalArgumentException();
+        }
+
+        this.name = name;
+
+        this.race = mother.race;
+
+        this.dna = father.dna.reproduce(mother.dna);
+
+        Random rand = new Random();
+
+        this.sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+
+        this.age = 0;
+
+        this.partner = null;
+
+        this.children = new ArrayList<Person>();
+
+        this.mother = mother;
+        this.father = father;
+
+        weeksPregnant = -1;
+
+        alive = true;
+        working = false;
+
+        if(father.isHoused()){
+            this.house = father.house;
+        }else if(mother.isHoused()){
+            this.house = mother.house;
+        }else{
+            this.house = null;
+        }
+
+    }
+
+    public String getName(){
+        return this.name;
+    }
+
+    public void rename(String name){
+        this.name = name;
+    }
+
+    public Race getRace(){
+        return this.race;
+    }
+
+    public DNA getDna(){
+        return this.dna;
+    }
+
+    public Sex getSex(){
+        return this.sex;
+    }
+
+    public int getAge(){
+        return this.age;
+    }
+
+    public int getAgeInYears(){
+        return this.age / 52;
+    }
+
+    public Person age(){
+        this.age++;
+
+        if(isPregnant()){
+
+            weeksPregnant++;
+
+            if(weeksPregnant >= race.getGestationPeriod()){
+                return giveBirth();
+            }
+
+        }
+
+        return null;
+
+    }
+
+    public Person getPartner(){
+        return this.partner;
+    }
+
+    public boolean isMarried(){
+        return this.partner != null;
+    }
+
+    public boolean getMarried(Person partner){
+        if(this.partner == null && partner.partner == null && this.race.equals(partner.getRace()) && this.age >= this.race.getReproductionAge() && partner.age >= this.race.getReproductionAge()){
+
+            if(partner.dna.getPercentageShared(this.dna) >= .125){
+                return false;
+            }
+
+            this.partner = partner;
+            partner.partner = this;
+
+            return true;
+        }
+        return false;
+    }
+
+    public ArrayList<Person> getChildren(){
+        return this.children;
+    }
+
+    public void addChild(Person child){
+        this.children.add(child);
+    }
+
+    public boolean isPregnant(){
+        return weeksPregnant > -1;
+    }
+
+    public boolean getPregnant(){
+
+        if(this.sex == Sex.Male || this.partner == null || this.partner.sex == Sex.Female || weeksPregnant >= 0 || !this.alive || !this.partner.alive){
+            return false;
+        }
+
+        double agePercent = this.age / this.race.getAverageLifespan();
+        double pregnantChance = Math.random();
+
+        if(pregnantChance > agePercent){
+
+            weeksPregnant = 0;
+            fatherOfCurrentChild = partner;
+            return true;
+
+        }
+
+        return false;
+
+    }
+
+    public Person giveBirth(){
+
+        Person baby = new Person("TEMP", this, this.fatherOfCurrentChild);
+
+        this.addChild(baby);
+        fatherOfCurrentChild.addChild(baby);
+
+        fatherOfCurrentChild = null;
+        weeksPregnant = -1;
+
+        return baby;
+    }
+
+    public boolean isAlive(){
+        return alive;
+    }
+
+    public void die(){
+
+        if(partner != null){
+            this.partner.partner = null;
+            this.partner = null;
+        }
+
+        if(father != null){
+            this.father.children.remove(this);
+        }
+        if(mother != null){
+            this.mother.children.remove(this);
+        }
+
+        alive = false;
+
+    }
+
+    public void Hire(){
+        this.working = true;
+    }
+
+    public void fire(){
+        this.working = false;
+    }
+
+    public boolean isWorking(){
+        return working;
+    }
+
+    public boolean isHoused(){
+        return house != null;
+    }
+
+    /*public boolean findHouse(House house){
+        if(house == null){
+            if(partner != null && partner.house != null){
+                this.house = partner.house;
+                this.house.setOwnersSpouse(this);
+            }
+        }
+    }*/
+
+    /*public boolean loseHouse(){
+        this.housed = false;
+    }*/
+
+    @Override
+    public boolean equals(Object person){
+
+        if(this == person){
+            return true;
+        }
+
+        if(!(person instanceof Person)){
+            return false;
+        }
+
+        return this.getName().equals(((Person)person).getName()) && this.dna.equals(((Person)person).getDna());
+    }
+
+}

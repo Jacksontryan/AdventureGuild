@@ -6,7 +6,6 @@ public abstract class NPC {
 
     private int level;
     private int age; //in weeks from 0
-    private Gender gender;
 
     private int maxHealth;
     private int health;
@@ -22,12 +21,11 @@ public abstract class NPC {
 
     private int speed;
 
-    public NPC(String name, int level, int age, Gender gender, int maxHealth, int attack, int defence, int magicAttack, int magicDefence, int evasion, int accuracy, int speed){
+    public NPC(String name, int level, int age, int maxHealth, int attack, int defence, int magicAttack, int magicDefence, int evasion, int accuracy, int speed){
         this.name = name;
 
         this.level = level;
         this.age = age;
-        this.gender = gender;
 
         this.maxHealth = maxHealth;
         this.health = maxHealth;

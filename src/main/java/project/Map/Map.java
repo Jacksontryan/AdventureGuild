@@ -1,7 +1,6 @@
 package project.Map;
 
-import java.util.ArrayList;
-import java.util.Stack;
+import java.util.*;
 
 public class Map {
 
@@ -23,10 +22,16 @@ public class Map {
     //array list of water regions
     private ArrayList<WaterRegion> waterRegions;
 
+    private Ocean ocean;
+
     //threshold which determines if cell is land or not. Greater than threshold is land, less than or equal is water
     private double threshold;
 
     private PerlinNoise perlin;
+
+    private double max;
+
+    private ArrayList<Point> riverSources;
 
     public Map(int width, int height, double threshold){
 
@@ -117,8 +122,12 @@ public class Map {
 
         addHeightMap();
 
+        addRivers(400);
+
         //instantiate the coast
         instantiateCoast();
+
+        trimMap();
 
     }
 
@@ -132,18 +141,6 @@ public class Map {
             }
         }
     }
-
-    /*private void addHeightMap(){
-        for(int i = 0; i < grid.length; i++){
-            for(int j = 0; j < grid[0].length; j++){
-                if(map[i][j] == 'w'){
-                    grid[i][j] = Math.random() * .3;
-                }else if(map[i][j] == 'l'){
-                    grid[i][j] = Math.random() * .7 + .3;
-                }
-            }
-        }
-    }*/
 
     private void instantiateCities(){
 
@@ -308,6 +305,20 @@ public class Map {
                 }
             }
         }
+
+        int size = 0;
+
+        for (WaterRegion waterRegion : waterRegions) {
+            if(waterRegion.points.size() > size){
+                size = waterRegion.points.size();
+            }
+        }
+
+        for(WaterRegion waterRegion : waterRegions){
+            if(waterRegion.points.size() == size){
+                ocean = waterRegion.markAsOcean();
+            }
+        }
     }
 
     private void fillAllIslands(){
@@ -460,6 +471,7 @@ public class Map {
         }
 
         map = temp;
+        grid = temp2;
         instantiateCoast();
     }
 
@@ -489,6 +501,22 @@ public class Map {
 
     public ArrayList<Point> getCoast(){
         return coast;
+    }
+
+    public double[][] getGrid() {
+        return grid;
+    }
+
+    public double getMax(){
+        return max;
+    }
+
+    public int getHeight(){
+        return getBottomMostCoordinate() - getTopMostCoordinate();
+    }
+
+    public int getWidth(){
+        return getRightMostCoordinate() - getLeftMostCoordinate();
     }
 
     public class Point{
@@ -551,7 +579,7 @@ public class Map {
             ArrayList<Point> landNeighbors = new ArrayList<Point>();
 
             for (Point neighbor : neighbors) {
-                if (Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'l' || Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'c') {
+                if (Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'l' || Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'c' || Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'r') {
                     landNeighbors.add(neighbor);
                 }
             }
@@ -626,6 +654,16 @@ public class Map {
             }
             return false;
         }
+
+        public double distance(Point p){
+            double distance = Double.MAX_VALUE;
+            for(Point point : points){
+                if(point.distance(p) < distance){
+                    distance = point.distance(p);
+                }
+            }
+            return distance;
+        }
     }
 
     public class City extends Location{
@@ -684,6 +722,8 @@ public class Map {
 
     public class WaterRegion extends Location {
 
+        private static Ocean ocean;
+
         public WaterRegion(ArrayList<Point> points){
             super(points);
         }
@@ -692,11 +732,16 @@ public class Map {
             return super.points.size();
         }
 
-        public void fillWaterRegion(){
+        public void fillWaterRegion() {
             for (Point point : this.points) {
                 grid[(int) point.x][(int) point.y] = threshold + 1;
                 map[(int) point.x][(int) point.y] = 'l';
             }
+        }
+
+        public Ocean markAsOcean(){
+            ocean = new Ocean(this.points);
+            return ocean;
         }
 
     }
@@ -725,7 +770,7 @@ public class Map {
         int octaves = 6;
         double gain = 0.5;
         double lacunarity = 2.0;
-        double max = 0;
+        max = 0;
 
         for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[0].length; y++) {
@@ -757,24 +802,156 @@ public class Map {
                 }
             }
         }
+        //System.out.println("max: " + max);
+        //System.out.println("min: " + min);
         //max -= (max/5);
-        double slope = max - (max / 5);
-        double peak = max - (max / 10);
-        double highlands = max - (max / 3);
-        double lowlands = max - (max / 2);
+        double slope = max - (max * .2);
+        double peak = max - (max * .1);
+        double riverSource = max - (max * .8);
 
+        riverSources = new ArrayList<Point>();
         for(int x = 0; x < grid.length; x++){
             for(int y = 0; y < grid[0].length; y++){
-                if(grid[x][y] > lowlands){
-                    map[x][y] = 'o';
-                }if(grid[x][y] > highlands){
-                    map[x][y] = 'h';
+                if(grid[x][y] > riverSource){
+                    riverSources.add(new Point(x, y));
                 }if(grid[x][y] > slope){
                     map[x][y] = 'm';
                 }if(grid[x][y] > peak){
                     map[x][y] = 'p';
                 }
             }
+        }
+    }
+
+    public class Ocean extends WaterRegion{
+
+        public Ocean(ArrayList<Point> points) {
+            super(points);
+        }
+
+    }
+
+    public class River extends WaterRegion {
+
+        public River(ArrayList<Point> points) {
+            super(points);
+        }
+
+        // Carve this river into the map as water
+        public void carve() {
+            for (Point p : points) {
+                map[p.getX()][p.getY()] = 'w';
+            }
+        }
+    }
+
+    private ArrayList<Point> findPathToOcean(Point start) {
+        int w = map.length;
+        int h = map[0].length;
+
+        boolean[][] visited = new boolean[w][h];
+        Point[][] parent = new Point[w][h];
+
+        double[][] cost = new double[w][h];
+        for (int i = 0; i < w; i++) {
+            Arrays.fill(cost[i], Double.MAX_VALUE);
+        }
+
+        PriorityQueue<Point> queue = new PriorityQueue<>(
+                Comparator.comparingDouble(p -> cost[p.getX()][p.getY()])
+        );
+
+        cost[start.getX()][start.getY()] = 0.0;
+        queue.add(start);
+
+        Point end = null;
+
+        while (!queue.isEmpty()) {
+            Point p = queue.poll();
+            int x = p.getX();
+            int y = p.getY();
+
+            if (visited[x][y]) continue;
+            visited[x][y] = true;
+
+            // If we hit existing water (not the start), we reached ocean
+            if (map[x][y] == 'w' && !(x == start.getX() && y == start.getY())) {
+                end = p;
+                break;
+            }
+
+            for (Point n : p.getNeighbors()) {
+                int nx = n.getX();
+                int ny = n.getY();
+
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                if (visited[nx][ny]) continue;
+
+                // Elevation bias (prefer lower)
+                double elevation = grid[nx][ny];
+
+                // Random wiggle for meandering
+                double wiggle = Math.random() * 8;
+
+                double newCost = cost[x][y] + elevation + wiggle;
+
+                if (newCost < cost[nx][ny]) {
+                    cost[nx][ny] = newCost;
+                    parent[nx][ny] = p;
+                    queue.add(n);
+                }
+            }
+        }
+
+        if (end == null) {
+            return null;
+        }
+
+        ArrayList<Point> path = new ArrayList<>();
+        Point cur = end;
+        while (cur != null && !(cur.getX() == start.getX() && cur.getY() == start.getY())) {
+            path.add(cur);
+            cur = parent[cur.getX()][cur.getY()];
+        }
+        path.add(start);
+        Collections.reverse(path);
+        return path;
+    }
+
+    private void addRivers(int maxRivers) {
+        Random rand = new Random();
+        int created = 0;
+        //int attempts = 0;
+        //int maxAttempts = maxRivers * 20;
+
+        while (created < maxRivers) {
+            //attempts++;
+
+            //int x = rand.nextInt(map.length);
+            //int y = rand.nextInt(map[0].length);
+
+            //System.out.println(riverSources.size());
+
+            Point p = riverSources.get(rand.nextInt(riverSources.size()));
+            int x = p.getX();
+            int y = p.getY();
+
+            // Must start on land (or mountain/peak/city) and not adjacent to water
+            char tile = map[x][y];
+            if (tile == 'w') continue;
+
+            Point start = new Point(x, y);
+            if (!start.getWaterNeighbors().isEmpty()) continue;
+
+            ArrayList<Point> path = findPathToOcean(start);
+            if (path == null || path.size() < 2) {
+                continue; // no valid river from here
+            }
+
+            River river = new River(path);
+            river.carve();
+
+            created++;
         }
     }
 

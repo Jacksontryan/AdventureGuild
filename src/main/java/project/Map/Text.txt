@@ -1,9 +1,8 @@
 package project.Map;
 
-import java.util.ArrayList;
-import java.util.Stack;
+import java.util.*;
 
-public class Map2 {
+public class Map {
 
     //grid of floating point values that determine if cell is land or water
     private double[][] grid;
@@ -23,11 +22,16 @@ public class Map2 {
     //array list of water regions
     private ArrayList<WaterRegion> waterRegions;
 
+    private Ocean ocean;
 
     //threshold which determines if cell is land or not. Greater than threshold is land, less than or equal is water
     private double threshold;
 
-    public Map2(int width, int height, double threshold){
+    private PerlinNoise perlin;
+
+    private double max;
+
+    public Map(int width, int height, double threshold){
 
         //instantiate grid to the set size
         this.grid = new double[width][height];
@@ -37,6 +41,8 @@ public class Map2 {
 
         //set threshold
         this.threshold = threshold;
+
+        perlin = new PerlinNoise(System.currentTimeMillis());
 
         //for each point in the grid, set the value of the grid to some value between 0 and 1 inclusive
         for(int i = 0; i < width; i++){
@@ -123,14 +129,14 @@ public class Map2 {
         coast = new ArrayList<Point>();
         for(int i = 0; i < map.length; i++){
             for(int j = 0; j < map[0].length; j++){
-                if(map[i][j] == 'l' && !new Point(i, j).getWaterNeighbors().isEmpty()){
+                if((map[i][j] == 'l' || map[i][j] == 'h' || map[i][j] == 'i' || map[i][j] == 'o') && !new Point(i, j).getWaterNeighbors().isEmpty()){
                     coast.add(new Point(i, j));
                 }
             }
         }
     }
 
-    private void addHeightMap(){
+    /*private void addHeightMap(){
         for(int i = 0; i < grid.length; i++){
             for(int j = 0; j < grid[0].length; j++){
                 if(map[i][j] == 'w'){
@@ -140,7 +146,7 @@ public class Map2 {
                 }
             }
         }
-    }
+    }*/
 
     private void instantiateCities(){
 
@@ -305,6 +311,20 @@ public class Map2 {
                 }
             }
         }
+
+        int size = 0;
+
+        for (WaterRegion waterRegion : waterRegions) {
+            if(waterRegion.points.size() > size){
+                size = waterRegion.points.size();
+            }
+        }
+
+        for(WaterRegion waterRegion : waterRegions){
+            if(waterRegion.points.size() == size){
+                ocean = waterRegion.markAsOcean();
+            }
+        }
     }
 
     private void fillAllIslands(){
@@ -457,6 +477,7 @@ public class Map2 {
         }
 
         map = temp;
+        grid = temp2;
         instantiateCoast();
     }
 
@@ -486,6 +507,14 @@ public class Map2 {
 
     public ArrayList<Point> getCoast(){
         return coast;
+    }
+
+    public double[][] getGrid() {
+        return grid;
+    }
+
+    public double getMax(){
+        return max;
     }
 
     public class Point{
@@ -531,11 +560,11 @@ public class Map2 {
 
             if(!(x == 0)){
                 neighbors.add(new Point(x-1, y));
-            }if(!(x == Map2.this.grid.length - 1)){
+            }if(!(x == Map.this.grid.length - 1)){
                 neighbors.add(new Point(x+1, y));
             }if(!(y == 0)){
                 neighbors.add(new Point(x, y-1));
-            }if(!(y == Map2.this.grid[0].length - 1)){
+            }if(!(y == Map.this.grid[0].length - 1)){
                 neighbors.add(new Point(x, y+1));
             }
 
@@ -548,7 +577,7 @@ public class Map2 {
             ArrayList<Point> landNeighbors = new ArrayList<Point>();
 
             for (Point neighbor : neighbors) {
-                if (Map2.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'l' || Map2.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'c') {
+                if (Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'l' || Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'c' || Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'r') {
                     landNeighbors.add(neighbor);
                 }
             }
@@ -562,7 +591,7 @@ public class Map2 {
             ArrayList<Point> waterNeighbors = new ArrayList<Point>();
 
             for (Point neighbor : neighbors) {
-                if (Map2.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'w') {
+                if (Map.this.map[(int) neighbor.getX()][(int) neighbor.getY()] == 'w') {
                     waterNeighbors.add(neighbor);
                 }
             }
@@ -605,7 +634,7 @@ public class Map2 {
 
         public boolean touchesBottom(){
             for (Point p : points) {
-                if (p.getY() == Map2.this.map[0].length - 1) return true;
+                if (p.getY() == Map.this.map[0].length - 1) return true;
             }
             return false;
         }
@@ -619,9 +648,19 @@ public class Map2 {
 
         public boolean touchesRight(){
             for (Point p : points) {
-                if (p.getX() == Map2.this.map[0].length - 1) return true;
+                if (p.getX() == Map.this.map[0].length - 1) return true;
             }
             return false;
+        }
+
+        public double distance(Point p){
+            double distance = Double.MAX_VALUE;
+            for(Point point : points){
+                if(point.distance(p) < distance){
+                    distance = point.distance(p);
+                }
+            }
+            return distance;
         }
     }
 
@@ -681,6 +720,8 @@ public class Map2 {
 
     public class WaterRegion extends Location {
 
+        private static Ocean ocean;
+
         public WaterRegion(ArrayList<Point> points){
             super(points);
         }
@@ -689,11 +730,97 @@ public class Map2 {
             return super.points.size();
         }
 
-        public void fillWaterRegion(){
+        public void fillWaterRegion() {
             for (Point point : this.points) {
                 grid[(int) point.x][(int) point.y] = threshold + 1;
                 map[(int) point.x][(int) point.y] = 'l';
             }
+        }
+
+        public Ocean markAsOcean(){
+            ocean = new Ocean(this.points);
+            return ocean;
+        }
+
+    }
+
+    public class WaterTile extends Point{
+
+        public WaterTile(double x, double y) {
+            super(x, y);
+            Map.this.map[getX()][getY()] = 'w';
+        }
+
+    }
+
+    public class LandTile extends Point{
+
+        public LandTile(double x, double y) {
+            super(x, y);
+            Map.this.map[getX()][getY()] = 'l';
+        }
+
+    }
+
+    private void addHeightMap() {
+
+        double scale = 0.004;        // lower = bigger mountains
+        int octaves = 6;
+        double gain = 0.5;
+        double lacunarity = 2.0;
+        max = 0;
+
+        for (int x = 0; x < grid.length; x++) {
+            for (int y = 0; y < grid[0].length; y++) {
+
+                if (map[x][y] == 'w') {
+                    grid[x][y] = 0;
+                    continue;
+                }
+
+                double nx = x * scale;
+                double ny = y * scale;
+
+                double h = perlin.ridgedNoise(nx, ny, octaves, gain, lacunarity);
+                double belt = perlin.noise(x * 0.0008, y * 0.0008);
+                belt = (belt + 1) / 2.0; // normalize to 0–1
+
+                // Optional: exaggerate mountains
+                h *= belt;
+
+                // Apply continent falloff
+                double dx = (x - grid.length / 2.0) / (grid.length / 2.0);
+                double dy = (y - grid[0].length / 2.0) / (grid[0].length / 2.0);
+                double dist = Math.sqrt(dx*dx + dy*dy);
+                double falloff = Math.pow(dist, 2.5);
+
+                grid[x][y] = Math.max(0, h - falloff);
+                if(max < grid[x][y]){
+                    max = grid[x][y];
+                }
+            }
+        }
+        //System.out.println("max: " + max);
+        //System.out.println("min: " + min);
+        //max -= (max/5);
+        double slope = max - (max * .2);
+        double peak = max - (max * .1);
+
+        for(int x = 0; x < grid.length; x++){
+            for(int y = 0; y < grid[0].length; y++){
+                if(grid[x][y] > slope){
+                    map[x][y] = 'm';
+                }if(grid[x][y] > peak){
+                    map[x][y] = 'p';
+                }
+            }
+        }
+    }
+
+    public class Ocean extends WaterRegion{
+
+        public Ocean(ArrayList<Point> points) {
+            super(points);
         }
 
     }

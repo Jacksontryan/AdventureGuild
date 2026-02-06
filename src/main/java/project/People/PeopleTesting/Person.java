@@ -32,6 +32,8 @@ public class Person {
 
     private House house;
 
+    private int numMoney;
+
     public Person() {
 
         this.name = "TEMP";
@@ -62,6 +64,8 @@ public class Person {
         working = false;
 
         house = null;
+
+        this.numMoney = 0;
 
     }
 
@@ -96,6 +100,8 @@ public class Person {
 
         house = null;
 
+        this.numMoney = 0;
+
     }
 
     public Person(String name, Race race){
@@ -127,6 +133,8 @@ public class Person {
 
         house = null;
 
+        this.numMoney = 0;
+
     }
 
     public Person(String name, Race race, DNA dna){
@@ -155,6 +163,8 @@ public class Person {
         working = false;
 
         house = null;
+
+        this.numMoney = 0;
     }
 
     public Person(String name, Race race, DNA dna, Sex sex, int age){
@@ -181,6 +191,8 @@ public class Person {
         this.working = false;
 
         house = null;
+
+        this.numMoney = 0;
 
     }
 
@@ -222,6 +234,8 @@ public class Person {
             this.house = null;
         }
 
+        this.numMoney = 0;
+
     }
 
     public String getName(){
@@ -234,6 +248,14 @@ public class Person {
 
     public Race getRace(){
         return this.race;
+    }
+
+    public boolean isAdult(){
+        return this.age >= this.race.getReproductionAge();
+    }
+
+    public boolean isElderly(){
+        return this.age >= this.race.getAverageLifespan();
     }
 
     public DNA getDna(){
@@ -253,7 +275,14 @@ public class Person {
     }
 
     public Person age(){
+
         this.age++;
+
+        Random rand = new Random();
+        int mutationChance = rand.nextInt(10000);
+        if(mutationChance == 0){
+            this.dna.mutate();
+        }
 
         if(isPregnant()){
 
@@ -296,6 +325,30 @@ public class Person {
         return this.children;
     }
 
+    public boolean hasChildren(){
+        return !this.children.isEmpty();
+    }
+
+    public int getNumberOfChildren(){
+        return this.children.size();
+    }
+
+    public Person getOldestChild(){
+
+        int oldest = -1;
+        Person oldestChild = null;
+
+        for(Person child : this.children){
+            if(child.getAge() > oldest){
+                oldest = child.getAge();
+                oldestChild = child;
+            }
+        }
+
+        return oldestChild;
+
+    }
+
     public void addChild(Person child){
         this.children.add(child);
     }
@@ -332,6 +385,11 @@ public class Person {
         this.addChild(baby);
         fatherOfCurrentChild.addChild(baby);
 
+        if(isHoused()){
+            baby.house = this.house;
+            house.addChildOccupant(baby);
+        }
+
         fatherOfCurrentChild = null;
         weeksPregnant = -1;
 
@@ -345,8 +403,20 @@ public class Person {
     public void die(){
 
         if(partner != null){
+            this.partner.makeMoney(this.numMoney);
+            this.numMoney = 0;
             this.partner.partner = null;
             this.partner = null;
+        }
+
+        else if(!getChildren().isEmpty()){
+            int moneyPerChild = numMoney / getChildren().size();
+            for(int i = 0; i < getChildren().size(); i++){
+                getChildren().get(i).makeMoney(moneyPerChild);
+            }
+            int extraMoney = numMoney - moneyPerChild * getChildren().size();
+            children.getFirst().makeMoney(extraMoney);
+            this.numMoney = 0;
         }
 
         if(father != null){
@@ -360,7 +430,11 @@ public class Person {
 
     }
 
-    public void Hire(){
+    public boolean hasJob(){
+        return this.working;
+    }
+
+    public void hire(){
         this.working = true;
     }
 
@@ -376,18 +450,50 @@ public class Person {
         return house != null;
     }
 
-    /*public boolean findHouse(House house){
-        if(house == null){
-            if(partner != null && partner.house != null){
-                this.house = partner.house;
-                this.house.setOwnersSpouse(this);
-            }
-        }
-    }*/
+    public House getHouse(){
+        return house;
+    }
 
-    /*public boolean loseHouse(){
-        this.housed = false;
-    }*/
+    public boolean occupyHouse(House house){
+        if(this.house == null){
+            this.house = house;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean loseHouse(){
+        if(this.house == null){
+            return false;
+        }
+        this.house = null;
+        return true;
+    }
+
+    public void makeMoney(int money){
+        if(money > 0){
+            this.numMoney += money;
+        }
+    }
+
+    public boolean canAfford(int cost){
+        if(numMoney >= cost){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean spendMoney(int money){
+        if(money > 0 && canAfford(money)){
+            this.numMoney -= money;
+            return true;
+        }
+        return false;
+    }
+
+    public int getMoney(){
+        return this.numMoney;
+    }
 
     @Override
     public boolean equals(Object person){

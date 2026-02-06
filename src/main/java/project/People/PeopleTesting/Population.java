@@ -10,8 +10,11 @@ public class Population {
 
     private ArrayList<Person> people;
     private Race race;
-    private long numDead = 0;
+    private long numDead;
+
     private double growthPercentage;
+    private int excessGold;
+    private int ageNum = 0;
 
     public Population(Race race, int startSize){
 
@@ -19,12 +22,23 @@ public class Population {
 
         this.people = new ArrayList<>();
 
+        this.numDead = 0;
+
         while(people.size() < startSize){
 
             people.add(new Person("TEMP", this.race));
 
         }
 
+        this.excessGold = 0;
+
+    }
+
+    public Population(ArrayList<Person> people){
+        this.people = people;
+        this.race = this.people.getFirst().getRace();
+        this.numDead = 0;
+        this.excessGold = 0;
     }
 
     public Race getRace(){
@@ -55,6 +69,22 @@ public class Population {
         return numWomen;
     }
 
+    public double getAverageNumChildren(){
+
+        int numChildren = 0;
+        int numAdults = 0;
+
+
+        for(Person p: people){
+            if(p.isAdult() && p.hasChildren()){
+                numAdults++;
+                numChildren+=p.getNumberOfChildren();
+            }
+        }
+
+        return 1.0 * numChildren / numAdults;
+    }
+
     public int getNumChildren(){
         int numChildren = 0;
         for(Person p: people){
@@ -81,6 +111,16 @@ public class Population {
 
     public int getSize(){
         return this.people.size();
+    }
+
+    public int getAgeNum(){
+        return this.ageNum;
+    }
+
+    public int getExcessGold(){
+        int e = this.excessGold;
+        this.excessGold = 0;
+        return e;
     }
 
     public boolean addPerson(Person person){
@@ -114,6 +154,13 @@ public class Population {
 
         return oldestPerson;
 
+    }
+
+    public Person getPerson(int i){
+        if(i >= people.size() || i < 0){
+            throw new IndexOutOfBoundsException();
+        }
+        return people.get(i);
     }
 
     public ArrayList<Integer> getAgeGroups(){
@@ -155,6 +202,8 @@ public class Population {
         return this.growthPercentage;
     }
 
+
+
     public void age(){
 
         Random rand = new Random();
@@ -195,7 +244,7 @@ public class Population {
                     person.getMarried(potentialCandidate);
                 }
 
-            }else if(person.getSex().equals(Sex.Female) && !person.isPregnant()){
+            }else if(person.getSex().equals(Sex.Female) && !person.isPregnant() && person.getNumberOfChildren() < person.getRace().getPreferredNumKids() && person.getPartner().getNumberOfChildren() < person.getRace().getPreferredNumKids()){
 
                 person.getPregnant();
 
@@ -208,6 +257,8 @@ public class Population {
 
         for(Person person : deadPeople){
             person.die();
+            excessGold += person.getMoney();
+            person.spendMoney(person.getMoney());
         }
 
         newPeople.clear();
@@ -217,15 +268,22 @@ public class Population {
         int finalSize =  people.size();
 
         growthPercentage = (1.0 * finalSize - initialSize) / initialSize * 100.0;
+        ageNum++;
 
+    }
+
+    public void ageYear(){
+        for(int i = 0; i < 52; i++){
+            age();
+        }
     }
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
 
-        Population humans = new Population(Race.instantiateRaces().get(0), 1000);
-        Population dwarves = new Population(Race.instantiateRaces().get(1), 1000);
-        Population elves = new Population(Race.instantiateRaces().get(2), 1000);
-        Population orcs = new Population(Race.instantiateRaces().get(3), 1000);
+        Population humans = new Population(Race.instantiateRaces().get(0), 175);
+        Population dwarves = new Population(Race.instantiateRaces().get(1), 175);
+        Population elves = new Population(Race.instantiateRaces().get(2), 175);
+        Population orcs = new Population(Race.instantiateRaces().get(3), 175);
 
         int week = 0;
 
@@ -241,13 +299,13 @@ public class Population {
 
         while(week < 10000){
 
-            humanWriter.println("Race: " + humans.getRace().getName() + ", Week " + week + " size: " + humans.getSize() + ", Growth Percentage: " + Math.round(humans.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + humans.getNumDead());
+            humanWriter.println("Race: " + humans.getRace().getName() + ", Week " + week + " size: " + humans.getSize() + ", Growth Percentage: " + Math.round(humans.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + humans.getNumDead() + " Average Number of Children per adult: " + humans.getAverageNumChildren());
 
-            dwarfWriter.println("Race: " + dwarves.getRace().getName() + ", Week " + week + " size: " + dwarves.getSize() + ", Growth Percentage: " + Math.round(dwarves.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + dwarves.getNumDead());
+            dwarfWriter.println("Race: " + dwarves.getRace().getName() + ", Week " + week + " size: " + dwarves.getSize() + ", Growth Percentage: " + Math.round(dwarves.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + dwarves.getNumDead() + " Average Number of Children per adult: " + dwarves.getAverageNumChildren());
 
-            elfWriter.println("Race: " + elves.getRace().getName() + ", Week " + week + " size: " + elves.getSize() + ", Growth Percentage: " + Math.round(elves.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + elves.getNumDead());
+            elfWriter.println("Race: " + elves.getRace().getName() + ", Week " + week + " size: " + elves.getSize() + ", Growth Percentage: " + Math.round(elves.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + elves.getNumDead() + " Average Number of Children per adult: " + elves.getAverageNumChildren());
 
-            orcsWriter.println("Race: " + orcs.getRace().getName() + ", Week " + week + " size: " + orcs.getSize() + ", Growth Percentage: " + Math.round(orcs.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + orcs.getNumDead());
+            orcsWriter.println("Race: " + orcs.getRace().getName() + ", Week " + week + " size: " + orcs.getSize() + ", Growth Percentage: " + Math.round(orcs.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + orcs.getNumDead() + " Average Number of Children per adult: " + orcs.getAverageNumChildren());
 
             week++;
 
@@ -299,7 +357,7 @@ public class Population {
 
     1000 Dwarves reaches population == 200,000 at week num 10116
 
-    1000 Elves reaches population == 200,000 at week num 7261
+    1000 Elves reaches population == 200,000 at week num
 
      */
 

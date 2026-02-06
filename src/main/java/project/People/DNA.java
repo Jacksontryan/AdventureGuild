@@ -84,6 +84,16 @@ public class DNA {
         }
         double[] sideA = getHalf();
         double[] sideB = other.getHalf();
+
+        for(int i=0;i<race;i++){
+            Random rand = new Random();
+            int choice = rand.nextInt(2);
+            if(choice==0){
+                double temp = sideA[i];
+                sideA[i] = sideB[i];
+                sideB[i] = temp;
+            }
+        }
         return new DNA(race, sideA, sideB);
     }
 
@@ -105,6 +115,17 @@ public class DNA {
             }
         }
         return true;
+    }
+
+    public void mutate(){
+        Random rand = new Random();
+        int chromosome = rand.nextInt(race);
+        int side = rand.nextInt(2);
+        if(side==0){
+            sideA[chromosome] = Math.random();
+        }else{
+            sideB[chromosome] = Math.random();
+        }
     }
 
     public static void main(String[] args){

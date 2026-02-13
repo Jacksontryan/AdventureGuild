@@ -277,16 +277,8 @@ public class Person implements Ageable{
         return father;
     }
 
-    public boolean hasFather(){
-        return father != null;
-    }
-
     public Person getMother() {
         return mother;
-    }
-
-    public boolean hasMother(){
-        return mother != null;
     }
 
     public boolean isChild(){

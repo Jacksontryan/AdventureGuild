@@ -1,0 +1,1472 @@
+C:\Users\jacks\.jdks\openjdk-24.0.2+12-54\bin\java.exe "-javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2025.1.3\lib\idea_rt.jar=63495" -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx-swt.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx.web.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx.media.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx.swing.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\jdk.jsobject.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\jfx.incubator.input.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\jfx.incubator.richtext.jar -p C:\Users\jacks\IdeaProjects\AdventureGuild\target\classes;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx.base.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx.controls.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx.fxml.jar;C:\Users\jacks\Downloads\openjfx-24.0.2_windows-x64_bin-sdk\javafx-sdk-24.0.2\lib\javafx.graphics.jar -m AdventureGuild/project.People.City
+Age: 0
+
+Population size: 150
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 0
+Number of Farms : 5
+
+Number of miners: 0
+Number of mines: 1
+
+Number of Soldiers: 0
+
+Number of Construction Workers: 0
+
+Number of orphanage workers: 0
+Number of Orphans: 29
+
+Number of blacksmiths: 0
+Number of blacksmith buildings: 1
+
+Food: 0
+
+Money: 0
+
+Number of Children: 29
+Number of adults: 121
+Number of Elderly: 0
+
+Number jobless: 120
+y
+Age: 52
+
+Population size: 172
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 15
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 41
+
+Number of Construction Workers: 39
+
+Number of orphanage workers: 4
+Number of Orphans: 50
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 2618
+
+Money: 0
+
+Number of Children: 54
+Number of adults: 117
+Number of Elderly: 1
+
+Number jobless: 0
+y
+Age: 104
+
+Population size: 193
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 15
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 38
+
+Number of Construction Workers: 38
+
+Number of orphanage workers: 4
+Number of Orphans: 72
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 3587
+
+Money: 0
+
+Number of Children: 76
+Number of adults: 113
+Number of Elderly: 4
+
+Number jobless: 0
+y
+Age: 156
+
+Population size: 218
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 15
+Number of Farms : 5
+
+Number of miners: 14
+Number of mines: 1
+
+Number of Soldiers: 38
+
+Number of Construction Workers: 33
+
+Number of orphanage workers: 4
+Number of Orphans: 96
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 4102
+
+Money: 0
+
+Number of Children: 101
+Number of adults: 108
+Number of Elderly: 9
+
+Number jobless: 0
+y
+Age: 208
+
+Population size: 257
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 13
+Number of Farms : 5
+
+Number of miners: 13
+Number of mines: 1
+
+Number of Soldiers: 35
+
+Number of Construction Workers: 31
+
+Number of orphanage workers: 5
+Number of Orphans: 139
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 3583
+
+Money: 0
+
+Number of Children: 148
+Number of adults: 101
+Number of Elderly: 8
+
+Number jobless: 0
+y
+Age: 260
+
+Population size: 268
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 13
+Number of Farms : 5
+
+Number of miners: 12
+Number of mines: 1
+
+Number of Soldiers: 29
+
+Number of Construction Workers: 27
+
+Number of orphanage workers: 6
+Number of Orphans: 160
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 3632
+
+Money: 0
+
+Number of Children: 168
+Number of adults: 90
+Number of Elderly: 10
+
+Number jobless: 0
+y
+Age: 312
+
+Population size: 282
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 13
+Number of Farms : 5
+
+Number of miners: 12
+Number of mines: 1
+
+Number of Soldiers: 28
+
+Number of Construction Workers: 26
+
+Number of orphanage workers: 6
+Number of Orphans: 180
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 3618
+
+Money: 0
+
+Number of Children: 182
+Number of adults: 89
+Number of Elderly: 11
+
+Number jobless: 0
+y
+Age: 364
+
+Population size: 307
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 14
+Number of Farms : 5
+
+Number of miners: 11
+Number of mines: 1
+
+Number of Soldiers: 26
+
+Number of Construction Workers: 24
+
+Number of orphanage workers: 6
+Number of Orphans: 211
+
+Number of blacksmiths: 4
+Number of blacksmith buildings: 1
+
+Food: 3893
+
+Money: 0
+
+Number of Children: 210
+Number of adults: 85
+Number of Elderly: 12
+
+Number jobless: 0
+y
+Age: 416
+
+Population size: 311
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 12
+Number of Farms : 5
+
+Number of miners: 10
+Number of mines: 1
+
+Number of Soldiers: 22
+
+Number of Construction Workers: 24
+
+Number of orphanage workers: 7
+Number of Orphans: 231
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 3289
+
+Money: 0
+
+Number of Children: 220
+Number of adults: 78
+Number of Elderly: 13
+
+Number jobless: 0
+y
+Age: 468
+
+Population size: 318
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 12
+Number of Farms : 5
+
+Number of miners: 9
+Number of mines: 1
+
+Number of Soldiers: 22
+
+Number of Construction Workers: 23
+
+Number of orphanage workers: 7
+Number of Orphans: 246
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 3282
+
+Money: 0
+
+Number of Children: 227
+Number of adults: 76
+Number of Elderly: 15
+
+Number jobless: 0
+y
+Age: 520
+
+Population size: 314
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 12
+Number of Farms : 5
+
+Number of miners: 7
+Number of mines: 1
+
+Number of Soldiers: 23
+
+Number of Construction Workers: 21
+
+Number of orphanage workers: 7
+Number of Orphans: 255
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 3286
+
+Money: 0
+
+Number of Children: 224
+Number of adults: 73
+Number of Elderly: 17
+
+Number jobless: 0
+y
+Age: 572
+
+Population size: 311
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 11
+Number of Farms : 5
+
+Number of miners: 7
+Number of mines: 1
+
+Number of Soldiers: 21
+
+Number of Construction Workers: 21
+
+Number of orphanage workers: 6
+Number of Orphans: 264
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 2989
+
+Money: 0
+
+Number of Children: 224
+Number of adults: 68
+Number of Elderly: 19
+
+Number jobless: 0
+y
+Age: 624
+
+Population size: 306
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 11
+Number of Farms : 5
+
+Number of miners: 7
+Number of mines: 1
+
+Number of Soldiers: 19
+
+Number of Construction Workers: 19
+
+Number of orphanage workers: 6
+Number of Orphans: 274
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 2994
+
+Money: 0
+
+Number of Children: 223
+Number of adults: 64
+Number of Elderly: 19
+
+Number jobless: 0
+y
+Age: 676
+
+Population size: 304
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 11
+Number of Farms : 5
+
+Number of miners: 7
+Number of mines: 1
+
+Number of Soldiers: 18
+
+Number of Construction Workers: 18
+
+Number of orphanage workers: 6
+Number of Orphans: 282
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 2996
+
+Money: 0
+
+Number of Children: 223
+Number of adults: 62
+Number of Elderly: 19
+
+Number jobless: 0
+y
+Age: 728
+
+Population size: 299
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 10
+Number of Farms : 5
+
+Number of miners: 6
+Number of mines: 1
+
+Number of Soldiers: 18
+
+Number of Construction Workers: 16
+
+Number of orphanage workers: 6
+Number of Orphans: 289
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 2701
+
+Money: 0
+
+Number of Children: 218
+Number of adults: 59
+Number of Elderly: 22
+
+Number jobless: 0
+y
+Age: 780
+
+Population size: 297
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 9
+Number of Farms : 5
+
+Number of miners: 6
+Number of mines: 1
+
+Number of Soldiers: 16
+
+Number of Construction Workers: 15
+
+Number of orphanage workers: 7
+Number of Orphans: 297
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 2403
+
+Money: 0
+
+Number of Children: 219
+Number of adults: 56
+Number of Elderly: 22
+
+Number jobless: 0
+y
+Age: 832
+
+Population size: 297
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 9
+Number of Farms : 5
+
+Number of miners: 6
+Number of mines: 1
+
+Number of Soldiers: 15
+
+Number of Construction Workers: 15
+
+Number of orphanage workers: 7
+Number of Orphans: 306
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 2403
+
+Money: 0
+
+Number of Children: 223
+Number of adults: 54
+Number of Elderly: 20
+
+Number jobless: 0
+y
+Age: 884
+
+Population size: 290
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 9
+Number of Farms : 5
+
+Number of miners: 5
+Number of mines: 1
+
+Number of Soldiers: 15
+
+Number of Construction Workers: 13
+
+Number of orphanage workers: 6
+Number of Orphans: 312
+
+Number of blacksmiths: 2
+Number of blacksmith buildings: 1
+
+Food: 2410
+
+Money: 0
+
+Number of Children: 220
+Number of adults: 50
+Number of Elderly: 20
+
+Number jobless: 0
+y
+Age: 936
+
+Population size: 287
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 9
+Number of Farms : 5
+
+Number of miners: 4
+Number of mines: 1
+
+Number of Soldiers: 14
+
+Number of Construction Workers: 13
+
+Number of orphanage workers: 5
+Number of Orphans: 313
+
+Number of blacksmiths: 3
+Number of blacksmith buildings: 1
+
+Food: 2413
+
+Money: 0
+
+Number of Children: 218
+Number of adults: 48
+Number of Elderly: 21
+
+Number jobless: 0
+y
+Age: 988
+
+Population size: 275
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 11
+Number of Farms : 5
+
+Number of miners: 6
+Number of mines: 1
+
+Number of Soldiers: 15
+
+Number of Construction Workers: 14
+
+Number of orphanage workers: 5
+Number of Orphans: 301
+
+Number of blacksmiths: 7
+Number of blacksmith buildings: 1
+
+Food: 3025
+
+Money: 0
+
+Number of Children: 197
+Number of adults: 58
+Number of Elderly: 20
+
+Number jobless: 0
+y
+Age: 1040
+
+Population size: 265
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 13
+Number of Farms : 5
+
+Number of miners: 7
+Number of mines: 1
+
+Number of Soldiers: 13
+
+Number of Construction Workers: 15
+
+Number of orphanage workers: 7
+Number of Orphans: 300
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 3635
+
+Money: 0
+
+Number of Children: 180
+Number of adults: 65
+Number of Elderly: 20
+
+Number jobless: 0
+y
+Age: 1092
+
+Population size: 272
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 15
+Number of Farms : 5
+
+Number of miners: 9
+Number of mines: 1
+
+Number of Soldiers: 13
+
+Number of Construction Workers: 16
+
+Number of orphanage workers: 6
+Number of Orphans: 306
+
+Number of blacksmiths: 9
+Number of blacksmith buildings: 1
+
+Food: 4228
+
+Money: 0
+
+Number of Children: 184
+Number of adults: 68
+Number of Elderly: 20
+
+Number jobless: 0
+y
+Age: 1144
+
+Population size: 273
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 17
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 17
+
+Number of Construction Workers: 22
+
+Number of orphanage workers: 11
+Number of Orphans: 294
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 4827
+
+Money: 0
+
+Number of Children: 162
+Number of adults: 92
+Number of Elderly: 19
+
+Number jobless: 0
+y
+Age: 1196
+
+Population size: 284
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 16
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 23
+
+Number of Construction Workers: 28
+
+Number of orphanage workers: 12
+Number of Orphans: 301
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 4516
+
+Money: 0
+
+Number of Children: 161
+Number of adults: 104
+Number of Elderly: 19
+
+Number jobless: 0
+y
+Age: 1248
+
+Population size: 296
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 19
+Number of Farms : 5
+
+Number of miners: 13
+Number of mines: 1
+
+Number of Soldiers: 25
+
+Number of Construction Workers: 30
+
+Number of orphanage workers: 14
+Number of Orphans: 312
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5304
+
+Money: 0
+
+Number of Children: 166
+Number of adults: 111
+Number of Elderly: 19
+
+Number jobless: 0
+y
+Age: 1300
+
+Population size: 306
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 19
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 25
+
+Number of Construction Workers: 32
+
+Number of orphanage workers: 21
+Number of Orphans: 320
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5394
+
+Money: 0
+
+Number of Children: 166
+Number of adults: 122
+Number of Elderly: 18
+
+Number jobless: 0
+y
+Age: 1352
+
+Population size: 326
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 18
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 25
+
+Number of Construction Workers: 30
+
+Number of orphanage workers: 24
+Number of Orphans: 345
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5074
+
+Money: 0
+
+Number of Children: 185
+Number of adults: 122
+Number of Elderly: 19
+
+Number jobless: 0
+y
+Age: 1404
+
+Population size: 333
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 24
+
+Number of Construction Workers: 30
+
+Number of orphanage workers: 23
+Number of Orphans: 363
+
+Number of blacksmiths: 9
+Number of blacksmith buildings: 1
+
+Food: 5667
+
+Money: 0
+
+Number of Children: 196
+Number of adults: 121
+Number of Elderly: 16
+
+Number jobless: 0
+y
+Age: 1456
+
+Population size: 340
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 21
+Number of Farms : 5
+
+Number of miners: 14
+Number of mines: 1
+
+Number of Soldiers: 24
+
+Number of Construction Workers: 30
+
+Number of orphanage workers: 19
+Number of Orphans: 387
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5660
+
+Money: 0
+
+Number of Children: 206
+Number of adults: 118
+Number of Elderly: 16
+
+Number jobless: 0
+y
+Age: 1508
+
+Population size: 361
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 22
+Number of Farms : 5
+
+Number of miners: 14
+Number of mines: 1
+
+Number of Soldiers: 24
+
+Number of Construction Workers: 30
+
+Number of orphanage workers: 18
+Number of Orphans: 410
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 6239
+
+Money: 0
+
+Number of Children: 227
+Number of adults: 118
+Number of Elderly: 16
+
+Number jobless: 0
+y
+Age: 1560
+
+Population size: 368
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 24
+
+Number of Construction Workers: 31
+
+Number of orphanage workers: 14
+Number of Orphans: 432
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5632
+
+Money: 0
+
+Number of Children: 238
+Number of adults: 114
+Number of Elderly: 16
+
+Number jobless: 0
+y
+Age: 1612
+
+Population size: 370
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 13
+Number of mines: 1
+
+Number of Soldiers: 23
+
+Number of Construction Workers: 30
+
+Number of orphanage workers: 13
+Number of Orphans: 445
+
+Number of blacksmiths: 9
+Number of blacksmith buildings: 1
+
+Food: 5630
+
+Money: 0
+
+Number of Children: 248
+Number of adults: 108
+Number of Elderly: 14
+
+Number jobless: 0
+y
+Age: 1664
+
+Population size: 375
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 13
+Number of mines: 1
+
+Number of Soldiers: 25
+
+Number of Construction Workers: 27
+
+Number of orphanage workers: 11
+Number of Orphans: 460
+
+Number of blacksmiths: 9
+Number of blacksmith buildings: 1
+
+Food: 5625
+
+Money: 0
+
+Number of Children: 255
+Number of adults: 105
+Number of Elderly: 15
+
+Number jobless: 0
+y
+Age: 1716
+
+Population size: 379
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 13
+Number of mines: 1
+
+Number of Soldiers: 25
+
+Number of Construction Workers: 27
+
+Number of orphanage workers: 14
+Number of Orphans: 474
+
+Number of blacksmiths: 9
+Number of blacksmith buildings: 1
+
+Food: 5621
+
+Money: 0
+
+Number of Children: 256
+Number of adults: 108
+Number of Elderly: 15
+
+Number jobless: 0
+y
+Age: 1768
+
+Population size: 386
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 14
+Number of mines: 1
+
+Number of Soldiers: 24
+
+Number of Construction Workers: 29
+
+Number of orphanage workers: 14
+Number of Orphans: 488
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5614
+
+Money: 0
+
+Number of Children: 261
+Number of adults: 111
+Number of Elderly: 14
+
+Number jobless: 0
+y
+Age: 1820
+
+Population size: 399
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 14
+Number of mines: 1
+
+Number of Soldiers: 25
+
+Number of Construction Workers: 29
+
+Number of orphanage workers: 14
+Number of Orphans: 505
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5601
+
+Money: 0
+
+Number of Children: 272
+Number of adults: 112
+Number of Elderly: 15
+
+Number jobless: 0
+y
+Age: 1872
+
+Population size: 401
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 21
+Number of Farms : 5
+
+Number of miners: 13
+Number of mines: 1
+
+Number of Soldiers: 24
+
+Number of Construction Workers: 29
+
+Number of orphanage workers: 14
+Number of Orphans: 522
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5899
+
+Money: 0
+
+Number of Children: 276
+Number of adults: 111
+Number of Elderly: 14
+
+Number jobless: 0
+y
+Age: 1924
+
+Population size: 405
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 21
+Number of Farms : 5
+
+Number of miners: 12
+Number of mines: 1
+
+Number of Soldiers: 22
+
+Number of Construction Workers: 27
+
+Number of orphanage workers: 14
+Number of Orphans: 542
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5895
+
+Money: 0
+
+Number of Children: 285
+Number of adults: 106
+Number of Elderly: 14
+
+Number jobless: 0
+y
+Age: 1976
+
+Population size: 402
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 22
+Number of Farms : 5
+
+Number of miners: 11
+Number of mines: 1
+
+Number of Soldiers: 21
+
+Number of Construction Workers: 25
+
+Number of orphanage workers: 14
+Number of Orphans: 556
+
+Number of blacksmiths: 9
+Number of blacksmith buildings: 1
+
+Food: 6198
+
+Money: 0
+
+Number of Children: 286
+Number of adults: 102
+Number of Elderly: 14
+
+Number jobless: 0
+y
+Age: 2028
+
+Population size: 395
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 20
+Number of Farms : 5
+
+Number of miners: 10
+Number of mines: 1
+
+Number of Soldiers: 20
+
+Number of Construction Workers: 27
+
+Number of orphanage workers: 16
+Number of Orphans: 562
+
+Number of blacksmiths: 9
+Number of blacksmith buildings: 1
+
+Food: 5605
+
+Money: 0
+
+Number of Children: 282
+Number of adults: 102
+Number of Elderly: 11
+
+Number jobless: 0
+y
+Age: 2080
+
+Population size: 390
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 19
+Number of Farms : 5
+
+Number of miners: 10
+Number of mines: 1
+
+Number of Soldiers: 20
+
+Number of Construction Workers: 28
+
+Number of orphanage workers: 17
+Number of Orphans: 563
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5610
+
+Money: 0
+
+Number of Children: 277
+Number of adults: 104
+Number of Elderly: 9
+
+Number jobless: 0
+y
+Age: 2132
+
+Population size: 380
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 18
+Number of Farms : 5
+
+Number of miners: 14
+Number of mines: 1
+
+Number of Soldiers: 21
+
+Number of Construction Workers: 29
+
+Number of orphanage workers: 18
+Number of Orphans: 566
+
+Number of blacksmiths: 8
+Number of blacksmith buildings: 1
+
+Food: 5020
+
+Money: 0
+
+Number of Children: 265
+Number of adults: 108
+Number of Elderly: 7
+
+Number jobless: 0
+y
+Age: 2184
+
+Population size: 379
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 22
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 20
+
+Number of Construction Workers: 28
+
+Number of orphanage workers: 20
+Number of Orphans: 569
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 5921
+
+Money: 0
+
+Number of Children: 257
+Number of adults: 115
+Number of Elderly: 7
+
+Number jobless: 0
+y
+Age: 2236
+
+Population size: 386
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 27
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 23
+
+Number of Construction Workers: 27
+
+Number of orphanage workers: 21
+Number of Orphans: 574
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 7914
+
+Money: 0
+
+Number of Children: 256
+Number of adults: 123
+Number of Elderly: 7
+
+Number jobless: 0
+y
+Age: 2288
+
+Population size: 386
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 28
+Number of Farms : 5
+
+Number of miners: 15
+Number of mines: 1
+
+Number of Soldiers: 26
+
+Number of Construction Workers: 30
+
+Number of orphanage workers: 24
+Number of Orphans: 573
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 8014
+
+Money: 0
+
+Number of Children: 246
+Number of adults: 133
+Number of Elderly: 7
+
+Number jobless: 0
+y
+Age: 2340
+
+Population size: 391
+Number dead people: 0
+Num Leaders: 1
+
+Number Farmers: 27
+Number of Farms : 5
+
+Number of miners: 14
+Number of mines: 1
+
+Number of Soldiers: 29
+
+Number of Construction Workers: 33
+
+Number of orphanage workers: 25
+Number of Orphans: 585
+
+Number of blacksmiths: 10
+Number of blacksmith buildings: 1
+
+Food: 7709
+
+Money: 0
+
+Number of Children: 246
+Number of adults: 138
+Number of Elderly: 7
+
+Number jobless: 0

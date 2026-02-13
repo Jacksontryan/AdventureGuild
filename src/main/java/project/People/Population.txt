@@ -1,4 +1,4 @@
-package project.People.PeopleTesting;
+package project.People;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,6 +15,8 @@ public class Population {
     private double growthPercentage;
     private int excessGold;
     private int ageNum = 0;
+
+    private ArrayList<Person> newPeopleThisWeek = new ArrayList<>();
 
     public Population(Race race, int startSize){
 
@@ -202,9 +204,9 @@ public class Population {
         return this.growthPercentage;
     }
 
-
-
     public void age(){
+
+        newPeopleThisWeek.clear();
 
         Random rand = new Random();
         double deathToll = 0;
@@ -217,7 +219,7 @@ public class Population {
         }else if(race.equals(Race.instantiateRaces().get(3))){
             deathToll = rand.nextDouble(0.00015,0.002);
         }
-        ArrayList<Person> newPeople = new ArrayList<>();
+        newPeopleThisWeek = new ArrayList<>();
         ArrayList<Person> deadPeople = new ArrayList<>();
 
         int initialSize = people.size();
@@ -227,7 +229,7 @@ public class Population {
             Person baby = person.age();
 
             if(baby != null) {
-                newPeople.add(baby);
+                newPeopleThisWeek.add(baby);
             }
 
             double deathChance = Math.random();
@@ -253,7 +255,7 @@ public class Population {
         }
 
         people.removeAll(deadPeople);
-        people.addAll(newPeople);
+        people.addAll(newPeopleThisWeek);
 
         for(Person person : deadPeople){
             person.die();
@@ -261,7 +263,7 @@ public class Population {
             person.spendMoney(person.getMoney());
         }
 
-        newPeople.clear();
+        //newPeople.clear();
         numDead+=deadPeople.size();
         deadPeople.clear();
 
@@ -270,6 +272,17 @@ public class Population {
         growthPercentage = (1.0 * finalSize - initialSize) / initialSize * 100.0;
         ageNum++;
 
+    }
+
+    public ArrayList<Person> getNewPeopleThisWeek(){
+        ArrayList<Person> temp = new ArrayList<>(newPeopleThisWeek);
+        newPeopleThisWeek.clear();
+        return temp;
+    }
+
+    public void killPerson(Person person){
+        person.die();
+        people.remove(person);
     }
 
     public void ageYear(){
@@ -287,17 +300,17 @@ public class Population {
 
         int week = 0;
 
-        File humanFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\PopulationFiles\\HumanPopulation.txt");
-        File dwarfFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\PopulationFiles\\DwarfPopulation.txt");
-        File elvesFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\PopulationFiles\\ElfPopulation.txt");
-        File orcsFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\PopulationFiles\\OrcPopulation.txt");
+        File humanFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\HumanPopulation.txt");
+        File dwarfFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\DwarfPopulation.txt");
+        File elvesFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\ElfPopulation.txt");
+        File orcsFile = new File("src\\main\\java\\project\\People\\PeopleTesting\\OrcPopulation.txt");
 
         PrintWriter humanWriter = new PrintWriter(humanFile);
         PrintWriter dwarfWriter = new PrintWriter(dwarfFile);
         PrintWriter elfWriter = new PrintWriter(elvesFile);
         PrintWriter orcsWriter = new PrintWriter(orcsFile);
 
-        while(week < 10000){
+        while(week < 100000){
 
             humanWriter.println("Race: " + humans.getRace().getName() + ", Week " + week + " size: " + humans.getSize() + ", Growth Percentage: " + Math.round(humans.getGrowthPercentage() * 100.0)/100.0 + "%, Number of Dead: " + humans.getNumDead() + " Average Number of Children per adult: " + humans.getAverageNumChildren());
 

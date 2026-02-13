@@ -1,512 +1,409 @@
 package project.People.PeopleTesting;
 
-import project.People.DNA;
+import project.People.*;
 
 import java.util.ArrayList;
-import java.util.Random;
 
-public class Person {
+public class Person implements Ageable {
 
-    private String name;
+    private int age;//age(), ageYear(), getAge(), getAgeInYears(), isChild(), isAdult(), isElderly()
 
-    private Race race;
+    private Race race;//getRace()
 
-    private DNA dna;
+    private DNA dna;//getDNA()
 
-    private Sex sex;
+    private Sex sex;//getSex()
 
-    private int age;
+    private Family family;//getFamily(), setFamily()
 
-    private Person partner;
-    public Person fatherOfCurrentChild;
+    //getFirstParent()
+    private Person parent1;//<- if straight or lesbian - Woman. if gay - Man
+    //getSecondParent()
+    private Person parent2;//<-if straight or gay - Man. if lesbian - Woman
+    private ArrayList<Person> children;//getChildren(), addChild(), hasChildren()
 
-    private ArrayList<Person> children;
-
-    private Person mother;
-    private Person father;
-
+    private Person fatherOfCurrentChild;
     private int weeksPregnant;
+    private ArrayList<Person>newChildren;
 
-    private boolean alive;
-    private boolean working;
+    private boolean isAlive;//isAlive(),die()
+    private byte lastAte;//getLastAte(), age(), eat()
 
-    private House house;
+    private Job job;//getJob(), hire(), fire(), isWorking()
 
-    private int numMoney;
+    private int money;//getMoney(), makeMoney(), spendMoney()
 
-    public Person() {
+    private DispositionChart dispositionChart;//getDispositionChart(), getDisposition(), interact()
 
-        this.name = "TEMP";
+    private static final ArrayList<Race> Races = Race.instantiateRaces();
+    private static final ArrayList<Job> Jobs = Job.instantiateJobs();
 
-        ArrayList<Race> races = Race.instantiateRaces();
+    public Person(){
 
-        Random rand = new Random();
+        this.age = 0;
 
-        this.race = races.get(rand.nextInt(races.size()));
+        this.race = EventPicker.pick(Races);
 
-        dna = new DNA(this.race.getRaceNum());
+        this.dna = new DNA(this.race.getRaceNum());
 
-        sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+        this.sex = EventPicker.pick(new Sex[]{Sex.Female, Sex.Male});
 
-        age = 0;
+        this.family = new Family(this);
 
-        partner = null;
-        fatherOfCurrentChild = null;
+        this.parent1 = null;
+        this.parent2 = null;
 
-        children = new ArrayList<Person>();
+        this.children = new ArrayList<Person>();
 
-        mother = null;
-        father = null;
+        this.isAlive = true;
+        this.lastAte = 0;
 
-        weeksPregnant = -1;
+        this.job = Jobs.getLast();
 
-        alive = true;
-        working = false;
+        this.money = 0;
 
-        house = null;
-
-        this.numMoney = 0;
-
-    }
-
-    public Person(String name){
-
-        this.name = name;
-
-        ArrayList<Race> races = Race.instantiateRaces();
-
-        Random rand = new Random();
-
-        this.race = races.get(rand.nextInt(races.size()));
-
-        dna = new DNA(this.race.getRaceNum());
-
-        sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
-
-        age = 0;
-
-        partner = null;
-        fatherOfCurrentChild = null;
-
-        children = new ArrayList<Person>();
-
-        mother = null;
-        father = null;
-
-        weeksPregnant = -1;
-
-        alive = true;
-        working = false;
-
-        house = null;
-
-        this.numMoney = 0;
+        this.dispositionChart = new DispositionChart();
 
     }
 
-    public Person(String name, Race race){
+    public Person(Race race){
 
-        this.name = name;
+        this.age = 0;
 
         this.race = race;
 
         this.dna = new DNA(this.race.getRaceNum());
 
-        Random rand = new Random();
+        this.sex = EventPicker.pick(new Sex[]{Sex.Female, Sex.Male});
 
-        sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+        this.family = new Family(this);
 
-        age = rand.nextInt(race.getAverageLifespan());
+        this.parent1 = null;
 
-        partner = null;
-        fatherOfCurrentChild = null;
+        this.parent2 = null;
 
-        children = new ArrayList<Person>();
+        this.children = new ArrayList<Person>();
 
-        mother = null;
-        father = null;
+        this.isAlive = true;
 
-        weeksPregnant = -1;
+        this.lastAte = 0;
 
-        alive = true;
-        working = false;
+        this.job = Jobs.getLast();
 
-        house = null;
+        this.money = 0;
 
-        this.numMoney = 0;
+        this.dispositionChart = new DispositionChart();
 
     }
 
-    public Person(String name, Race race, DNA dna){
-        this.name = name;
+    public Person(Race race, DNA dna){
 
-        this.race = race;
-
-        this.dna = dna;
-
-        Random rand = new Random();
-
-        this.sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
+        if(race.getRaceNum() != dna.getRace()){
+            throw new IllegalArgumentException("DNA does not match DNA type of its respective Race");
+        }
 
         this.age = 0;
 
-        partner = null;
-
-        children = new ArrayList<Person>();
-
-        mother = null;
-        father = null;
-
-        weeksPregnant = -1;
-
-        alive = true;
-        working = false;
-
-        house = null;
-
-        this.numMoney = 0;
-    }
-
-    public Person(String name, Race race, DNA dna, Sex sex, int age){
-        this.name = name;
-
         this.race = race;
 
         this.dna = dna;
 
-        this.sex = sex;
+        this.sex = EventPicker.pick(new Sex[]{Sex.Female, Sex.Male});
+
+        this.family = new Family(this);
+
+        this.parent1 = null;
+
+        this.parent2 = null;
+
+        this.children = new ArrayList<Person>();
+
+        this.isAlive = true;
+
+        this.lastAte = 0;
+
+        this.job = Jobs.getLast();
+
+        this.money = 0;
+
+        this.dispositionChart = new DispositionChart();
+
+    }
+
+    public Person(Race race, DNA dna, int age){
+
+        if(this.race.getRaceNum() != dna.getRace()){
+            throw new IllegalArgumentException("DNA does not match DNA type of its respective Race");
+        }
 
         this.age = age;
 
-        this.partner = null;
+        this.race = race;
+
+        this.dna = dna;
+
+        this.sex = EventPicker.pick(new Sex[]{Sex.Female, Sex.Male});
+
+        this.family = new Family(this);
+
+        this.parent1 = null;
+
+        this.parent2 = null;
 
         this.children = new ArrayList<Person>();
 
-        this.mother = null;
-        this.father = null;
+        this.isAlive = true;
 
-        this.weeksPregnant = -1;
+        this.lastAte = 0;
 
-        this.alive = true;
-        this.working = false;
+        this.job = Jobs.getLast();
 
-        house = null;
+        this.money = 0;
 
-        this.numMoney = 0;
+        this.dispositionChart = new DispositionChart();
 
     }
 
-    public Person(String name, Person mother, Person father){
-
-        if(mother.sex != Sex.Female || father.sex != Sex.Male || father.race != mother.race){
-            throw new IllegalArgumentException();
+    public Person(Person parent1, Person parent2){
+        if(!parent1.getRace().equals(parent2.getRace())){
+            throw new IllegalArgumentException("Different Races Cannot Breed");
         }
-
-        this.name = name;
-
-        this.race = mother.race;
-
-        this.dna = father.dna.reproduce(mother.dna);
-
-        Random rand = new Random();
-
-        this.sex = rand.nextInt(2) == 0 ? Sex.Female : Sex.Male;
 
         this.age = 0;
 
-        this.partner = null;
+        this.race = parent1.getRace();
+
+        this.dna = parent1.getDna().reproduce(parent2.getDna());
+
+        this.sex = EventPicker.pick(new Sex[]{Sex.Female, Sex.Male});
+
+        this.family = parent1.getSex() == Sex.Female ? parent1.getFamily() : parent2.getFamily();
+
+        this.parent1 = parent1;
+
+        this.parent2 = parent2;
 
         this.children = new ArrayList<Person>();
 
-        this.mother = mother;
-        this.father = father;
+        this.isAlive = true;
 
-        weeksPregnant = -1;
+        this.lastAte = 0;
 
-        alive = true;
-        working = false;
+        this.job = Jobs.getLast();
 
-        if(father.isHoused()){
-            this.house = father.house;
-        }else if(mother.isHoused()){
-            this.house = mother.house;
-        }else{
-            this.house = null;
-        }
+        this.money = 0;
+        this.dispositionChart = new DispositionChart();
+        dispositionChart.addRelationship(parent1, 100);
+        dispositionChart.addRelationship(parent2, 100);
 
-        this.numMoney = 0;
-
-    }
-
-    public String getName(){
-        return this.name;
-    }
-
-    public void rename(String name){
-        this.name = name;
     }
 
     public Race getRace(){
-        return this.race;
+        return race;
+    }
+
+    public DNA getDna(){
+        return dna;
+    }
+
+    public Sex getSex(){
+        return sex;
+    }
+
+    public boolean isAlive(){
+        return this.isAlive;
+    }
+
+    public boolean isChild(){
+        return this.age < this.race.getReproductionAge();
+    }
+
+    public boolean isOrphan(){
+        return (this.parent1 == null || !this.parent1.isAlive) && (this.parent2 == null || !this.parent2.isAlive) && this.isChild();
     }
 
     public boolean isAdult(){
-        return this.age >= this.race.getReproductionAge();
+        return this.age >= this.race.getReproductionAge() && this.age < this.race.getAverageLifespan();
     }
 
     public boolean isElderly(){
         return this.age >= this.race.getAverageLifespan();
     }
 
-    public DNA getDna(){
-        return this.dna;
+    public Family getFamily() {
+        return family;
     }
 
-    public Sex getSex(){
-        return this.sex;
+    public void setFamily(Family family) {
+        this.family = family;
     }
 
-    public int getAge(){
-        return this.age;
+    public Person getFirstParent(){
+        return parent1;
     }
 
-    public int getAgeInYears(){
-        return this.age / 52;
-    }
-
-    public Person age(){
-
-        this.age++;
-
-        Random rand = new Random();
-        int mutationChance = rand.nextInt(10000);
-        if(mutationChance == 0){
-            this.dna.mutate();
-        }
-
-        if(isPregnant()){
-
-            weeksPregnant++;
-
-            if(weeksPregnant >= race.getGestationPeriod()){
-                return giveBirth();
-            }
-
-        }
-
-        return null;
-
-    }
-
-    public Person getPartner(){
-        return this.partner;
-    }
-
-    public boolean isMarried(){
-        return this.partner != null;
-    }
-
-    public boolean getMarried(Person partner){
-        if(this.partner == null && partner.partner == null && this.race.equals(partner.getRace()) && this.age >= this.race.getReproductionAge() && partner.age >= this.race.getReproductionAge()){
-
-            if(partner.dna.getPercentageShared(this.dna) >= .125){
-                return false;
-            }
-
-            this.partner = partner;
-            partner.partner = this;
-
-            return true;
-        }
-        return false;
+    public Person getSecondParent(){
+        return parent2;
     }
 
     public ArrayList<Person> getChildren(){
-        return this.children;
+        return children;
+    }
+
+    public void addChild(Person child){
+        this.children.add(child);
+        dispositionChart.addRelationship(child, 100);
     }
 
     public boolean hasChildren(){
         return !this.children.isEmpty();
     }
 
-    public int getNumberOfChildren(){
-        return this.children.size();
-    }
-
-    public Person getOldestChild(){
-
-        int oldest = -1;
-        Person oldestChild = null;
-
-        for(Person child : this.children){
-            if(child.getAge() > oldest){
-                oldest = child.getAge();
-                oldestChild = child;
-            }
-        }
-
-        return oldestChild;
-
-    }
-
-    public void addChild(Person child){
-        this.children.add(child);
-    }
-
-    public boolean isPregnant(){
-        return weeksPregnant > -1;
-    }
-
-    public boolean getPregnant(){
-
-        if(this.sex == Sex.Male || this.partner == null || this.partner.sex == Sex.Female || weeksPregnant >= 0 || !this.alive || !this.partner.alive){
-            return false;
-        }
-
-        double agePercent = this.age / this.race.getAverageLifespan();
-        double pregnantChance = Math.random();
-
-        if(pregnantChance > agePercent){
-
-            weeksPregnant = 0;
-            fatherOfCurrentChild = partner;
-            return true;
-
-        }
-
-        return false;
-
-    }
-
-    public Person giveBirth(){
-
-        Person baby = new Person("TEMP", this, this.fatherOfCurrentChild);
-
-        this.addChild(baby);
-        fatherOfCurrentChild.addChild(baby);
-
-        if(isHoused()){
-            baby.house = this.house;
-            house.addChildOccupant(baby);
-        }
-
-        fatherOfCurrentChild = null;
-        weeksPregnant = -1;
-
-        return baby;
-    }
-
-    public boolean isAlive(){
-        return alive;
-    }
-
-    public void die(){
-
-        if(partner != null){
-            this.partner.makeMoney(this.numMoney);
-            this.numMoney = 0;
-            this.partner.partner = null;
-            this.partner = null;
-        }
-
-        else if(!getChildren().isEmpty()){
-            int moneyPerChild = numMoney / getChildren().size();
-            for(int i = 0; i < getChildren().size(); i++){
-                getChildren().get(i).makeMoney(moneyPerChild);
-            }
-            int extraMoney = numMoney - moneyPerChild * getChildren().size();
-            children.getFirst().makeMoney(extraMoney);
-            this.numMoney = 0;
-        }
-
-        if(father != null){
-            this.father.children.remove(this);
-        }
-        if(mother != null){
-            this.mother.children.remove(this);
-        }
-
-        alive = false;
-
-    }
-
-    public boolean hasJob(){
-        return this.working;
-    }
-
-    public void hire(){
-        this.working = true;
-    }
-
-    public void fire(){
-        this.working = false;
-    }
-
-    public boolean isWorking(){
-        return working;
-    }
-
-    public boolean isHoused(){
-        return house != null;
-    }
-
-    public House getHouse(){
-        return house;
-    }
-
-    public boolean occupyHouse(House house){
-        if(this.house == null){
-            this.house = house;
-            return true;
-        }
-        return false;
-    }
-
-    public boolean loseHouse(){
-        if(this.house == null){
-            return false;
-        }
-        this.house = null;
-        return true;
+    public int getMoney(){
+        return this.money;
     }
 
     public void makeMoney(int money){
         if(money > 0){
-            this.numMoney += money;
+            this.money+=money;
         }
-    }
-
-    public boolean canAfford(int cost){
-        if(numMoney >= cost){
-            return true;
-        }
-        return false;
     }
 
     public boolean spendMoney(int money){
-        if(money > 0 && canAfford(money)){
-            this.numMoney -= money;
+        if(this.money >= money && money > 0){
+            this.money -= money;
             return true;
         }
         return false;
     }
 
-    public int getMoney(){
-        return this.numMoney;
+    public Job getJob(){
+        return job;
+    }
+
+    public boolean isWorking(){
+        return !this.job.equals(Jobs.getLast());
+    }
+
+    public boolean hire(Job job){
+        if(this.job.equals(Jobs.getLast())){
+            this.job = job;
+            return true;
+        }
+        return false;
+    }
+
+    public void fire(){
+        this.job = Jobs.getLast();
+    }
+
+    public byte getLastAte(){
+        return this.lastAte;
+    }
+
+    public void eat(){
+        this.lastAte = 0;
+    }
+
+    public void die(){
+        this.isAlive = false;
+        for(Person child : this.children){
+            if(child.isAlive() && child.getFirstParent().equals(this)){
+                child.parent1 = null;
+            }else if(child.isAlive() && child.getSecondParent().equals(this)){
+                child.parent2 = null;
+            }
+        }
+        if(parent1 != null && parent1.isAlive) {
+            parent1.getChildren().remove(this);
+        }
+        if(parent2 != null && parent2.isAlive) {
+            parent2.getChildren().remove(this);
+        }
+    }
+
+    public boolean isPregnant(){
+        return this.fatherOfCurrentChild != null;
     }
 
     @Override
-    public boolean equals(Object person){
+    public void age() {
 
-        if(this == person){
+        newChildren.clear();
+
+        this.age++;
+        this.lastAte++;
+
+        if(isPregnant()){
+            this.weeksPregnant++;
+            if(this.weeksPregnant >= this.race.getGestationPeriod()){
+                newChildren = new ArrayList<Person>();
+                newChildren.add(new Person(this, fatherOfCurrentChild));
+                this.addChild(newChildren.getFirst());
+                fatherOfCurrentChild.addChild(newChildren.getFirst());
+                this.weeksPregnant = 0;
+                this.fatherOfCurrentChild = null;
+            }
+        }
+
+        if(this.lastAte > 3){
+            this.die();
+        }
+
+        if(family.canHaveChildren() && this.sex == Sex.Female){
+            this.fatherOfCurrentChild = family.getFirstPartner().equals(this) ? family.getSecondPartner() : family.getFirstPartner();
+        }
+
+    }
+
+    @Override
+    public void ageYear() {
+
+        for(int i = 0; i < 52; i++){
+            age();
+        }
+
+    }
+
+    @Override
+    public int getAge() {
+        return this.age;
+    }
+
+    @Override
+    public int getAgeInYears() {
+        return this.age / 52;
+    }
+
+    public DispositionChart getDispositionChart() {
+        return dispositionChart;
+    }
+
+    public int getDisposition(Person person){
+        return this.dispositionChart.getDisposition(person);
+    }
+
+    public void interact(Person person, int disposition){
+        dispositionChart.addRelationship(person, disposition);
+    }
+
+    public boolean askOut(Person person){
+        if(person.getDisposition(this) >= 25 && !this.family.inRelationship() && person.family.inRelationship()){
+            this.family.mergeFamily(person.getFamily());
+            this.interact(person, 5);
+            person.interact(this, 5);
             return true;
         }
+        return false;
+    }
 
-        if(!(person instanceof Person)){
-            return false;
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Person){
+            Person person = (Person)obj;
+            return this.age == person.getAge() && this.dna.equals(person.getDna()) && this.getSex() == person.getSex();
         }
-
-        return this.getName().equals(((Person)person).getName()) && this.dna.equals(((Person)person).getDna());
+        return false;
     }
 
 }

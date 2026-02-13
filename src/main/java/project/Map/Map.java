@@ -1,5 +1,8 @@
 package project.Map;
 
+import project.People.EventPicker;
+import project.People.Metal;
+
 import java.util.*;
 
 public class Map {
@@ -757,9 +760,16 @@ public class Map {
 
     public class LandTile extends Point{
 
+        private final Metal metal;
+
         public LandTile(double x, double y) {
             super(x, y);
             Map.this.map[getX()][getY()] = 'l';
+            metal = EventPicker.pick(Metal.getMetalTypes());
+        }
+
+        public Metal getMetal() {
+            return metal;
         }
 
     }

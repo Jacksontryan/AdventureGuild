@@ -1,6 +1,4 @@
-package project.People.PeopleTesting;
-
-import project.People.Person;
+package project.People;
 
 import java.util.ArrayList;
 

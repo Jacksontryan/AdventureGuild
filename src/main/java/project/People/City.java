@@ -1,346 +1,696 @@
 package project.People;
 
-import project.Map.Map;
-
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
 
-public class City {
+public class City implements Ageable{
 
-    private ArrayList<Person> people;
-    private final Person.Race human;
-    private double deathToll;
+    private Population humans;
+    private Population dwarves;
+    private Population elves;
+    private Population orcs;
+
     private Person leader;
-    private int numLeaders;
 
-    public City(int startSize){
-        this.people = new ArrayList<>();
-        Random rand = new Random();
-        ArrayList<Person.Race> races = Person.Race.instantiateRaces();
-        human = races.get(0);
-        for(int i=0;i<startSize;i++){
-            DNA dna = new DNA(human.getRaceNum());
-            Person.Sex sex = rand.nextInt(2) == 0 ? Person.Sex.FEMALE : Person.Sex.MALE;
-            int age = rand.nextInt(human.getAverageLifespan());
-            Person person = new Person("NAME", dna, human, sex, age);
-            people.add(person);
+    private int cityGold;
+
+    private int excessFood;
+    private int[] food;
+
+    private int numBronze;
+    private int numIron;
+    private int numSteel;
+
+    private ArrayList<Person> people = new ArrayList<>();
+
+    private ArrayList<House> houses;
+    private ArrayList<Farm> farms;
+    private ArrayList<Mine> mines;
+    private Orphanage orphanage;
+    private Barracks barracks;
+    private BuildersGuild buildersGuild;
+    private ArrayList<Blacksmith> blacksmiths;
+
+    private int age;
+
+    public City(int humansSize, int dwarvesSize, int elvesSize, int orcsSize){
+
+        ArrayList<Race> races = Race.instantiateRaces();
+
+        Race human = races.get(0);
+        Race dwarf = races.get(1);
+        Race elf = races.get(2);
+        Race orc = races.get(3);
+
+        humans = new Population(human, humansSize);
+        dwarves = new Population(dwarf, dwarvesSize);
+        elves = new Population(elf, elvesSize);
+        orcs = new Population(orc, orcsSize);
+
+        cityGold = 0;
+
+        if(humansSize +dwarvesSize + elvesSize + orcsSize == 0){
+            leader = null;
+        }else{
+
+            leader = null;
+
+            Random rand = new Random();
+
+            while(leader == null) {
+
+                int leaderNumber = rand.nextInt(humansSize + dwarvesSize + elvesSize + orcsSize);
+
+                Person candidate = null;
+
+                if (leaderNumber < humansSize) {
+                    candidate = humans.getPerson(leaderNumber);
+                }else if (leaderNumber < dwarvesSize) {
+                    candidate = dwarves.getPerson(leaderNumber - humansSize);
+                }else if (leaderNumber < elvesSize) {
+                    candidate = elves.getPerson(leaderNumber - humansSize - dwarvesSize);
+                }else{
+                    candidate = orcs.getPerson(leaderNumber - humansSize - dwarvesSize - elvesSize);
+                }
+
+                if(candidate != null && candidate.getAge() > candidate.getRace().getReproductionAge()){
+                    leader = candidate;
+                }
+
+            }
+
+            randomizePopulationArray();
+
+            leader.fire();
+            leader.hire(Job.instantiateJobs().get(3));
+            this.excessFood = 0;
+            this.food = new int[3];
+
+            this.age = 0;
+
         }
-        numLeaders = 0;
-        leader = chooseLeader();
-        leader.setName("Leader" + numLeaders);
+
+        houses = new ArrayList<>();
+        houses.add(new House(true));
+        if(leader != null && !leader.isHoused()){
+            houses.getFirst().setOwner(leader);
+        }
+
+        farms = new ArrayList<>();
+
+        farms.add(new Farm());
+        farms.add(new Farm());
+        farms.add(new Farm());
+        farms.add(new Farm());
+        farms.add(new Farm());
+
+        mines = new ArrayList<>();
+        mines.add(new Mine());
+        blacksmiths = new ArrayList<>();
+        blacksmiths.add(new Blacksmith());
+        orphanage = new Orphanage();
+        buildersGuild = new BuildersGuild();
+        barracks = new Barracks();
+
     }
 
-    public void age(){
-        Random rand = new Random();
-        deathToll = rand.nextDouble(0.0001,0.0015);
-        ArrayList<Person> newPeople = new ArrayList<Person>();
-        ArrayList<Person> deadPeople = new ArrayList<Person>();
-        for(Person person: people){
-            Person p = person.age();
-            if(p!=null){
-                newPeople.add(p);
-            }
-            if (person.getAge() >= human.getReproductionAge() && person.getPartner() == null) {
-                int x = rand.nextInt(people.size());
-                Person partner = people.get(x);
+    public int getNumFarmers(){
 
+        int numFarmers = 0;
 
-                if (partner.getAge() >= human.getReproductionAge()
-                        && partner.getSex() != person.getSex()
-                        && partner.getDna().getPercentageShared(person.getDna()) < .125) {
-
-                    person.marry(partner);
-
-
-                }
-            }else if(person.getAge() >= human.getReproductionAge() && person.getPartner() != null) {
-                Person partner = person.getPartner();
-                // Only females get pregnant
-                if (person.getSex() == Person.Sex.FEMALE) {
-                    person.getPregnant(partner);
-                } else if (partner.getSex() == Person.Sex.FEMALE) {
-                    partner.getPregnant(person);
-                }
-            }
-            double deathChance = Math.random();
-            if(deathChance < deathToll || person.getAge() > human.getAverageLifespan() * 1.5){
-                /*if(person.equals(leader)){
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Leader died!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                    if(!leader.getChildren().isEmpty()){
-                        leader = leader.getChildren().getFirst();
-                        numLeaders++;
-                        leader.setName("Leader" + numLeaders);
-                    }else{
-                        leader = chooseLeader();
-                        numLeaders++;
-                        leader.setName("Leader" + numLeaders);
-                    }
-                }*/
-                deadPeople.addLast(person);
-                person.die();
-            }
+        for(Farm farm : farms){
+            numFarmers+= farm.getNumWorkers();
         }
-        people.addAll(newPeople);
-        people.removeAll(deadPeople);
-        if(deadPeople.contains(leader)){
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!LEADER DIED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            if(!leader.getChildren().isEmpty()){
-                leader = leader.getChildren().getFirst();
-            }else{
-                leader = chooseLeader();
-            }
-            numLeaders++;
-            if(leader!=null) {
-                leader.setName("Leader" + numLeaders);
-            }
-        }
-        newPeople.clear();
-        deadPeople.clear();
+
+        return numFarmers;
+
     }
 
-    public int getSize(){
-        return people.size();
+    public int getNumChildren(){
+        int numChildren = 0;
+        for(Person person : people){
+            if(person.isChild()){
+                numChildren++;
+            }
+        }
+        return numChildren;
+    }
+
+    public int getNumAdults(){
+        int numAdults = 0;
+        for(Person person : people){
+            if(person.isAdult()){
+                numAdults++;
+            }
+        }
+        return numAdults;
+    }
+
+    public int getNumElderly(){
+        int numElderly = 0;
+        for(Person person : people){
+            if(person.isElderly()){
+                numElderly++;
+            }
+        }
+        return numElderly;
+    }
+
+    public int getNumMiners(){
+        int numMiners = 0;
+
+        for(Mine mine : mines){
+            numMiners+= mine.getNumWorkers();
+        }
+
+        return numMiners;
+    }
+
+    public int getNumBlacksmiths(){
+        int numBlacksmiths = 0;
+        for(Blacksmith blacksmith : blacksmiths){
+            numBlacksmiths+= blacksmith.getNumWorkers();
+        }
+        return numBlacksmiths;
+    }
+
+    public int getNumOrphanageWorkers(){
+        return orphanage.getNumWorkers();
+    }
+
+    public int getNumOrphans(){
+        return orphanage.getNumOrphans();
+    }
+
+    public int getNumNonOrphans(){
+
+        int numNonOrphans = 0;
+
+        for(Person person : people){
+            if(person.isChild() && (person.hasFather() || person.hasMother())){
+                numNonOrphans++;
+            }
+        }
+
+        return numNonOrphans;
+    }
+
+    public int getNumSoldiers(){
+        return barracks.getNumWorkers();
+    }
+
+    public int getNumConstructionWorkers(){
+        return buildersGuild.getNumWorkers();
+    }
+
+    public int getNumNotWorking(){
+        int numNotWorking = 0;
+        for(Person person : people){
+            if(!person.isWorking() && !person.isChild() && !person.isElderly() && person.isAlive()){
+                numNotWorking++;
+            }
+        }
+        return numNotWorking;
+    }
+
+    public int getNumDead(){
+        int numDead = 0;
+        for(Person person : people){
+            if(!person.isAlive()){
+                numDead++;
+            }
+        }
+        return numDead;
+    }
+
+    public void randomizePopulationArray(){
+
+        Random rand = new Random();
+
+        people.addAll(humans.getPeople());
+
+        for(Person dwarf : dwarves.getPeople()){
+            int pos = rand.nextInt(people.size());
+            people.add(pos, dwarf);
+        }
+
+        for(Person elf : elves.getPeople()){
+            int pos = rand.nextInt(people.size());
+            people.add(pos, elf);
+        }
+
+        for(Person orc : orcs.getPeople()){
+            int pos = rand.nextInt(people.size());
+            people.add(pos, orc);
+        }
+
     }
 
     public Person getLeader(){
         return leader;
     }
 
-    public Person chooseLeader() {
-        Person best = null;
-
-        for (Person p : people) {
-            if (p.getAge() >= p.race.getReproductionAge()) {
-                if (best == null || p.getAge() > best.getAge()) {
-                    best = p;
-                }
-            }
-        }
-
-        // If no adults exist, choose the oldest child
-        if (best == null) {
-            for (Person p : people) {
-                if (best == null || p.getAge() > best.getAge()) {
-                    best = p;
-                }
-            }
-        }
-
-        return best;
+    public Population getHumans(){
+        return humans;
     }
 
-    public Person getOldestPerson(){
-        int oldest = 0;
-        int oldestIndex = -1;
-        Person oldestPerson = null;
-        for(int i = 0; i < people.size(); i++){
-            Person person = people.get(i);
-            if(person.getAge() > oldest){
-                oldest = person.getAge();
-                oldestIndex = i;
-                oldestPerson = person;
-            }
-        }
-        return oldestPerson;
+    public boolean hasHumans(){
+        return humans.getSize() != 0;
     }
 
-    public ArrayList<Integer> getNumberOfEachAge(){
-        if(people.isEmpty()){
-            return new ArrayList<>();
-        }
-        int oldestAge = getOldestPerson().getAge() / 52;
-        ArrayList<Integer> ageGroups = new ArrayList<>();
-        for(int i = 0; i <= oldestAge; i++){
-            ageGroups.add(0);
-        }
-        for(Person person: people){
-            int age = person.getAge()/52;
-            ageGroups.set(age, ageGroups.get(age) + 1);
-        }
-        return ageGroups;
+    public Population getDwarves(){
+        return dwarves;
     }
 
-    public static void main(String[]args) throws InterruptedException, FileNotFoundException {
-        City city1 = new City(1000);
-        City city2 = new City(1000);
-        City city3 = new City(1000);
-        City city4 = new City(1000);
-        City city5 = new City(1000);
-        City city6 = new City(1000);
-        City city7 = new City(1000);
-        City city8 = new City(1000);
-        City city9 = new City(1000);
-        City city10 = new City(1000);
-        City city11 = new City(1000);
-        City city12 = new City(1000);
-        City city13 = new City(1000);
-        City city14 = new City(1000);
-        City city15 = new City(1000);
-        City city16 = new City(1000);
-        City city17 = new City(1000);
-        City city18 = new City(1000);
-        City city19 = new City(1000);
-        City city20 = new City(1000);
+    public boolean hasDwarves(){
+        return dwarves.getSize() != 0;
+    }
 
-        //File f = new File("src\\main\\java\\project\\People\\City.txt");
-        //PrintWriter out = new PrintWriter(f);
+    public Population getElves(){
+        return elves;
+    }
 
-        int weekNum = 0;
+    public boolean hasElves(){
+        return elves.getSize() != 0;
+    }
 
-        while(weekNum < 300){
-        //while(city1.getSize() + city2.getSize() + city3.getSize() + city4.getSize() + city5.getSize() + city6.getSize() + city7.getSize() + city8.getSize() + city9.getSize() + city10.getSize() + city11.getSize() + city12.getSize() + city13.getSize() + city14.getSize() + city15.getSize() + city16.getSize() + city17.getSize() + city18.getSize() + city19.getSize() + city20.getSize() < 1000000){
+    public Population getOrcs(){
+        return orcs;
+    }
 
-            //out.println("Week number: " + weekNum);
-            ArrayList<Integer> ages = city1.getNumberOfEachAge();
-            //out.println("Oldest Age: " + city1.getOldestPerson().getAge() / 52);
+    public boolean hasOrcs(){
+        return orcs.getSize() != 0;
+    }
 
-            String s = "";
-            for(int i = 0; i < ages.size(); i++){
-                s += ages.get(i) + " people age " + i + " ";
-            }
-            //out.println(s);
-            System.out.println("Week number: " + weekNum);
-            Thread t1 = new Thread(city1::age);
-            /*Thread t2 = new Thread(city2::age);
-            Thread t3 = new Thread(city3::age);
-            Thread t4 = new Thread(city4::age);
-            Thread t5 = new Thread(city5::age);
-            Thread t6 = new Thread(city6::age);
-            Thread t7 = new Thread(city7::age);
-            Thread t8 = new Thread(city8::age);
-            Thread t9 = new Thread(city9::age);
-            Thread t10 = new Thread(city10::age);
-            Thread t11 = new Thread(city11::age);
-            Thread t12 = new Thread(city12::age);
-            Thread t13 = new Thread(city13::age);
-            Thread t14 = new Thread(city14::age);
-            Thread t15 = new Thread(city15::age);
-            Thread t16 = new Thread(city16::age);
-            Thread t17 = new Thread(city17::age);
-            Thread t18 = new Thread(city18::age);
-            Thread t19 = new Thread(city19::age);
-            Thread t20 = new Thread(city20::age);*/
-            t1.start();
-            /*t2.start();
-            t3.start();
-            t4.start();
-            t5.start();
-            t6.start();
-            t7.start();
-            t8.start();
-            t9.start();
-            t10.start();
-            t11.start();
-            t12.start();
-            t13.start();
-            t14.start();
-            t15.start();
-            t16.start();
-            t17.start();
-            t18.start();
-            t19.start();
-            t20.start();*/
+    public int getCityGold(){
+        return cityGold;
+    }
 
-            t1.join();
-            /*t2.join();
-            t3.join();
-            t4.join();
-            t5.join();
-            t6.join();
-            t7.join();
-            t8.join();
-            t9.join();
-            t10.join();
-            t11.join();
-            t12.join();
-            t13.join();
-            t14.join();
-            t15.join();
-            t16.join();
-            t17.join();
-            t18.join();
-            t19.join();
-            t20.join();*/
+    public int getExcessFood(){
+        return excessFood;
+    }
 
-            System.out.println("City 1 size: " + city1.getSize());
-            /*System.out.println("City 2 size: " + city2.getSize());
-            System.out.println("City 3 size: " + city3.getSize());
-            System.out.println("City 4 size: " + city4.getSize());
-            System.out.println("City 5 size: " + city5.getSize());
-            System.out.println("City 6 size: " + city6.getSize());
-            System.out.println("City 7 size: " + city7.getSize());
-            System.out.println("City 8 size: " + city8.getSize());
-            System.out.println("City 9 size: " + city9.getSize());
-            System.out.println("City 10 size: " + city10.getSize());
-            System.out.println("City 11 size: " + city11.getSize());
-            System.out.println("City 12 size: " + city12.getSize());
-            System.out.println("City 13 size: " + city13.getSize());
-            System.out.println("City 14 size: " + city14.getSize());
-            System.out.println("City 15 size: " + city15.getSize());
-            System.out.println("City 16 size: " + city16.getSize());
-            System.out.println("City 17 size: " + city17.getSize());
-            System.out.println("City 18 size: " + city18.getSize());
-            System.out.println("City 19 size: " + city19.getSize());
-            System.out.println("City 20 size: " + city20.getSize());*/
+    public int getSize(){
+        return this.humans.getSize() + this.dwarves.getSize() + this.elves.getSize() + this.orcs.getSize();
+    }
 
-            if(city1.getLeader()==null){
-                System.out.println("City 1 has no leader");
+    public void age(){
+        this.age++;
+        humans.age();
+        dwarves.age();
+        elves.age();
+        orcs.age();
+        cityGold = cityGold + orcs.getExcessGold() + elves.getExcessGold() + humans.getExcessGold() + dwarves.getExcessGold();
+
+        people.removeAll(humans.getPeopleDiedThisWeek());
+        people.removeAll(dwarves.getPeopleDiedThisWeek());
+        people.removeAll(elves.getPeopleDiedThisWeek());
+        people.removeAll(orcs.getPeopleDiedThisWeek());
+
+        this.excessFood = food[0] + food[1] + food[2];
+
+        Random rand = new Random();
+        for(Person candidate : humans.getNewPeopleThisWeek()){
+            if(people.isEmpty()){
+                people.add(candidate);
             }else {
-                System.out.println("Leader: " + city1.getLeader().getName());
+                people.add(rand.nextInt(people.size()), candidate);
+            }
+        }
+
+        for(Person candidate : dwarves.getNewPeopleThisWeek()){
+            if(people.isEmpty()){
+                people.add(candidate);
+            }else {
+                people.add(rand.nextInt(people.size()), candidate);
+            }
+        }
+
+        for(Person candidate : elves.getNewPeopleThisWeek()){
+            if(people.isEmpty()){
+                people.add(candidate);
+            }else {
+                people.add(rand.nextInt(people.size()), candidate);
+            }
+        }
+
+        for(Person candidate : orcs.getNewPeopleThisWeek()){
+            if(people.isEmpty()){
+                people.add(candidate);
+            }else {
+                people.add(rand.nextInt(people.size()), candidate);
+            }
+        }
+
+        food[2] = food[1];
+        food[1] = food[0];
+        food[0] = 0;
+
+        for(Farm farm : farms){
+            //excessFood += farm.getOutput();
+            food[0] += farm.getOutput();
+        }
+
+        excessFood = food[0] + food[1] + food[2];
+
+        ArrayList<Person> starvedPeople = new ArrayList<>();
+
+        for(Person person : people){
+
+            if(excessFood > 0){
+                person.eat();
+                excessFood--;
+                if(food[2] > 0){
+                    food[2]--;
+                }else if(food[1] > 0){
+                    food[1]--;
+                }else{
+                    food[0]--;
+                }
             }
 
-            System.out.println();
-            weekNum++;
+
+            if(person.isAdult() && !person.isWorking() && person.isAlive()){
+
+                //boolean event = EventPicker.flipWeightedCoin(1, 999);
+
+                //if(event){
+                //person.hire(Job.instantiateJobs().get(4));
+                //}else {
+                pickJob(person);
+                //}
+            }
+
+            if(person.getLastAte() >= 3){
+                person.die();
+                starvedPeople.add(person);
+            }
+
         }
-        //out.close();
+
+        //System.out.println(food[0] + " " + food[1] + " " + food[2]);
+
+        people.removeAll(starvedPeople);
+
+        for(Person person : starvedPeople){
+            if(person.getRace().equals(humans.getRace())){
+                humans.killPerson(person);
+            } else if(person.getRace().equals(dwarves.getRace())){
+                dwarves.killPerson(person);
+            } else if(person.getRace().equals(elves.getRace())){
+                elves.killPerson(person);
+            } else if(person.getRace().equals(orcs.getRace())){
+                orcs.killPerson(person);
+            }
+        }
+
+        for(Farm farm : farms){
+            farm.age();
+            //System.out.println(farm.getOutput());
+            //System.out.println(farm.getWorkers().size());
+            //excessFood += farm.getOutput();
+        }
+
+        //System.out.println("Excess food: " + excessFood);
+
+        for(Mine mine: mines){
+            mine.age();
+            if(mine.getMetal() == Metal.getMetalTypes().getLast()){
+                this.cityGold += mine.getOutput() * 3;
+            }else if(mine.getMetal() == Metal.getMetalTypes().get(3)){
+                this.cityGold += mine.getOutput() * 2;
+            }
+        }
+        for(Blacksmith blacksmith: blacksmiths){
+            blacksmith.age();
+        }
+        for(House house : houses){
+            house.age();
+        }
+        orphanage.age();
+        barracks.age();
+        buildersGuild.age();
+
     }
 
-    public static class Tributary{
+    @Override
+    public void ageYear() {
+        for(int i = 0; i < 52; i++){
+            this.age();
+        }
+    }
 
-        private int maxNumWorkers;
-        private ArrayList<Person> workers;
+
+
+    public void age100Years(){
+        for(int i = 0; i < 100; i++){
+            ageYear();
+        }
+    }
+
+    @Override
+    public int getAge() {
+        return this.age;
+    }
+
+    @Override
+    public int getAgeInYears() {
+        return this.age / 52;
+    }
+
+    public void pickJob(Person person){
+
+        if(excessFood + getFarmOutput() < this.getSize()){
+
+            int index = 0;
+            boolean found = false;
+
+            while(!found && index < farms.size()){
+
+                if(farms.get(index).acceptingWorkers()){
+                    farms.get(index).addWorker(person);
+                    found = true;
+                }
+
+                index++;
+            }
+
+            if(!found){
+                buildersGuild.addWorker(person);
+            }
+
+        }else{
+            ArrayList<Organization> hiringCandidates = new ArrayList<>();
+            int index = 0;
+            boolean found = false;
+            while(index < farms.size() && !found){
+
+                if(farms.get(index).acceptingWorkers()){
+                    hiringCandidates.add(farms.get(index));
+                    found = true;
+                }
+
+                index++;
+            }
+            index = 0;
+            found = false;
+            while(index < mines.size() && !found){
+
+                if(mines.get(index).acceptingWorkers()){
+                    hiringCandidates.add(mines.get(index));
+                    found = true;
+                }
+
+                index++;
+            }
+
+            index = 0;
+            found = false;
+
+            while(index < blacksmiths.size() && !found){
+
+                if(blacksmiths.get(index).acceptingWorkers()){
+                    hiringCandidates.add(blacksmiths.get(index));
+                    found = true;
+                }
+
+                index++;
+
+            }
+
+            if(orphanage.acceptingWorkers()){
+                hiringCandidates.add(orphanage);
+            }
+
+            hiringCandidates.add(barracks);
+
+            hiringCandidates.add(buildersGuild);
+
+            EventPicker.pick(hiringCandidates).addWorker(person);
+
+        }
+
+    }
+
+
+    public void pickJob2(Person person){
+
+        //ArrayList<Job.txt> jobs = new ArrayList<>();
+        ArrayList<Organization> organizations = new ArrayList<>();
+
+        if(excessFood + getFarmOutput() < this.getSize()){
+            for(Farm farm : farms){
+                if(farm.acceptingWorkers()){
+                    farm.addWorker(person);
+                    return;
+                }
+            }
+            buildersGuild.addWorker(person);
+            return;
+        }
+
+        for(Farm farm : farms){
+            if(farm.acceptingWorkers()){
+                organizations.addLast(farm);
+                //jobs.addLast(Job.txt.instantiateJobs().get(1));
+                break;
+            }
+        }
+
+        for(Mine mine: mines){
+            if(mine.acceptingWorkers()){
+                organizations.addLast(mine);
+                //jobs.addLast(Job.txt.instantiateJobs().get(2));
+                break;
+            }
+        }
+
+        for(Blacksmith blacksmith: blacksmiths){
+            if(blacksmith.acceptingWorkers()){
+                organizations.addLast(blacksmith);
+                //jobs.addLast(Job.txt.instantiateJobs().get(3));
+                break;
+            }
+        }
+
+        organizations.add(City.this.orphanage);
+        //jobs.addLast(Job.txt.instantiateJobs().get(0));
+
+        organizations.add(City.this.barracks);
+        //jobs.addLast(Job.txt.instantiateJobs().get(6));
+
+        organizations.add(City.this.buildersGuild);
+        //jobs.addLast(Job.txt.instantiateJobs().get(5));
+
+        System.out.println(EventPicker.pick(organizations).addWorker(person));
+
+    }
+
+    public int getFarmOutput(){
+        int output = 0;
+        for(Farm farm : farms){
+            output += farm.getOutput();
+        }
+        return output;
+    }
+
+    public Orphanage getOrphanage(){
+        return orphanage;
+    }
+
+    public Barracks getBarracks(){
+        return barracks;
+    }
+
+    public BuildersGuild getBuildersGuild(){
+        return buildersGuild;
+    }
+
+    public ArrayList<Farm> getFarms(){
+        return farms;
+    }
+
+    public ArrayList<Mine> getMines(){
+        return mines;
+    }
+
+    public ArrayList<Blacksmith> getBlacksmiths(){
+        return blacksmiths;
+    }
+
+    public abstract class Tributary extends Organization {
+
         protected int level;
         protected int maxLevel;
+        protected int exp;
+        protected int nextExp;
+        protected int outputPerWorker;
 
-        public Tributary(int maxNumWorkers){
-            this.maxNumWorkers = maxNumWorkers;
-            workers = new ArrayList<>();
-            this.level = 1;
-            this.maxLevel = 1;
-        }
-
-        public Tributary(int maxNumWorkers, int maxLevel){
-            this.maxNumWorkers = maxNumWorkers;
-            workers = new ArrayList<>();
+        public Tributary(int maxNumWorkers, int maxLevel, int outputPerWorker){
+            super(City.this, maxNumWorkers);
+            //this.maxNumWorkers = maxNumWorkers;
+            //workers = new ArrayList<>();
             this.level = 1;
             this.maxLevel = maxLevel;
+            this.exp = 0;
+            this.nextExp = 10 * level;
+            this.outputPerWorker = outputPerWorker;
         }
 
-        public int getNumWorkers(){
-            return workers.size();
-        }
+        public abstract int getOutputPerWorker();
 
-        public boolean acceptingWorkers(){
-            return workers.size() < maxNumWorkers;
-        }
-
-        public boolean addWorker(Person worker){
-            if(!acceptingWorkers()){
-                return false;
+        public void levelUp(){
+            if(this.level < this.maxLevel && this.exp >= this.nextExp){
+                this.exp-=this.nextExp;
+                this.level++;
+                if(this.level == this.maxLevel){
+                    this.nextExp = 0;
+                }else {
+                    this.nextExp = this.level * 10;
+                }
             }
-            workers.add(worker);
-            worker.Hire();
-            return true;
         }
+
+    }
+
+    public abstract class Organization extends Entity {
+
+        protected int maxNumWorkers;
+        protected ArrayList<Person> workers;
+        protected int excessGold;
+
+        public Organization(City city, int maxNumWorkers){
+            super(City.this.leader, city);
+            this.maxNumWorkers = maxNumWorkers;
+            this.workers = new ArrayList<>();
+            this.excessGold = 0;
+        }
+
+        public abstract boolean acceptingWorkers();
+
+        public abstract boolean addWorker(Person worker);
 
         public boolean fireWorker(Person worker){
             if(workers.contains(worker)){
                 workers.remove(worker);
-                worker.Fire();
+                worker.fire();
                 return true;
             }
+
             return false;
+        }
+
+        public int getMaxNumWorkers(){
+            return this.maxNumWorkers;
+        }
+
+        public ArrayList<Person> getWorkers(){
+            return workers;
+        }
+
+        public int getNumWorkers(){
+            return workers.size();
         }
 
         public void resize(int newSize){
@@ -352,156 +702,924 @@ public class City {
             maxNumWorkers = newSize;
         }
 
-        public int getMaxNumWorkers(){
-            return maxNumWorkers;
+        public boolean payWorkers(){
+
+            for(Person worker : this.workers){
+                if(this.excessGold >= worker.getJob().getWeeklyPay()){
+                    worker.makeMoney(worker.getJob().getWeeklyPay());
+                    this.excessGold -= worker.getJob().getWeeklyPay();
+                }else {
+                    worker.makeMoney(this.excessGold);
+                    this.excessGold = 0;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int getExcessGold(){
+            return excessGold;
+        }
+
+        public void makeMoney(int money){
+            this.excessGold += money;
+        }
+
+        public abstract void age();
+
+    }
+
+    public abstract static class Entity implements Ageable{
+
+        protected Person owner;
+        protected int age;
+
+        protected City city;
+
+        public Entity(Person owner, City city){
+            this.owner = owner;
+            this.city = city;
+            this.age = 0;
+        }
+
+        public Person getOwner(){
+            return owner;
+        }
+
+        public abstract void age();
+
+        public int getAge(){
+            return age;
         }
 
     }
 
-    public static class Farm extends Tributary{
+    public class Farm extends Tributary{
 
-        private Map.Point point;
-
-        private static int MAXHOUSES = 30;
-
-        private int numHouses;
-
-        private int outputPerWorker;
-
-        private ArrayList<Person> workers;
-
+        private Person owner;
         private ArrayList<House> houses;
 
-        public Farm(int numHouses, int outputPerWorker) {
-            super(numHouses * 10, 10);
-            if(numHouses > MAXHOUSES * super.level / super.maxLevel){
-                throw new IllegalArgumentException("Max number of houses exceeded");
+        public Farm(){
+            super(30, 10, 10);
+            this.owner = City.this.leader;
+            this.houses = new ArrayList<>();
+            houses.add(new House(true));
+            if(!owner.isHoused()){
+                houses.getFirst().setOwner(owner);
             }
-            this.numHouses = numHouses;
         }
 
-        public Map.Point getPoint(){
-            return point;
-        }
-
-        public int getNumHouses(){
-            return numHouses;
-        }
-
-        public int getMaxNumHouses(){
-            return MAXHOUSES;
-        }
-
-        public int getMaxLevel(){
-            return maxLevel;
+        public Farm(Person owner) {
+            super(30, 10, 10);
+            this.owner = owner;
+            houses = new ArrayList<>();
+            houses.add(new House(true));
+            if(!owner.isHoused()){
+                houses.getFirst().setOwner(owner);
+            }
         }
 
         public int getOutputPerWorker(){
-            return outputPerWorker;
+            return super.level * super.outputPerWorker;
+        }
+
+        public Person getOwner(){
+            return owner;
         }
 
         public int getOutput(){
-            int output = 0;
-            for(int i = 0; i < workers.size(); i++){
-                output += outputPerWorker;
+            return getOutputPerWorker() * getNumWorkers();
+        }
+
+        @Override
+        public int getMaxNumWorkers(){
+            return this.maxNumWorkers * this.level / this.maxLevel;
+        }
+
+        @Override
+        public boolean acceptingWorkers(){
+            return this.getNumWorkers() < this.getMaxNumWorkers();
+        }
+
+        @Override
+        public boolean addWorker(Person worker){
+            if(!this.acceptingWorkers() || worker.hasJob()){
+                return false;
             }
-            return output;
+            worker.hire(Job.instantiateJobs().get(1));
+            workers.add(worker);
+            return true;
+        }
+
+        public int getMaxNumHouses(){
+            return level * 3;
         }
 
         public ArrayList<House> getHouses(){
             return houses;
         }
 
-        public ArrayList<Person> getWorkers(){
-            return workers;
+        public int getNumHouses(){
+            return houses.size();
         }
 
-        public boolean buildHouse(){
-            if(houses.size() < numHouses){
-                houses.add(new House());
-                return true;
+        public boolean acceptingHouses(){
+            return getNumHouses() < getMaxNumHouses();
+        }
+
+        public boolean addHouse(){
+            if(!acceptingHouses()){
+                return false;
             }
-            return false;
+            houses.add(new House(false));
+            return true;
+        }
+
+        @Override
+        public void age() {
+
+            ArrayList<Person> workersToRemove = new ArrayList<>();
+
+            for(Person worker : super.workers){
+                if(!worker.isAlive() || worker.isElderly()){
+                    worker.fire();
+                    workersToRemove.add(worker);
+                }
+            }
+
+            workers.removeAll(workersToRemove);
+
+            if(level < this.maxLevel) {
+                this.exp += getNumWorkers();
+            }
+
+            levelUp();
+
+            for(House house : houses){
+                house.age();
+                if(!super.workers.contains(house.getOwner()) && house.getOwner() != null){
+                    house.kickInhabitants();
+                }else if(house.getOwner() == null){
+                    int i = 0;
+                    boolean found = false;
+                    while(i < super.workers.size() && !found){
+                        if(!super.workers.get(i).isHoused()){
+                            house.setOwner(super.workers.get(i));
+                            found = true;
+                        }
+                        i++;
+                    }
+                }
+            }
+
+            if(!owner.isAlive() && !super.workers.isEmpty()){
+                this.owner = super.workers.get(0);
+            }else{
+                this.owner = City.this.leader;
+            }
+
+        }
+
+        @Override
+        public void ageYear() {
+            for(int i = 0; i < 52; i++){
+                this.age();
+            }
+        }
+
+        @Override
+        public int getAgeInYears() {
+            return age / 52;
         }
 
     }
 
-    public static class House{
+    public class Mine extends Tributary{
 
-        private Person owner;
-        private Person ownersSpouse;
-        private ArrayList<Person> childInhabitants;
+        //private Person owner;
 
-        public House(){
-            this.owner = null;
-            this.ownersSpouse = null;
-            this.childInhabitants = new ArrayList<>();
+        private static final ArrayList<Metal> metals = Metal.getMetalTypes();
+
+        private Metal metal;
+
+        public Mine(){
+            super(150,10,100);
+            this.metal = metals.getLast();//EventPicker.pick(metals);
         }
 
-        public House(Person owner){
-            if(owner.isHoused()){
-                throw new IllegalArgumentException();
+        public Mine(Metal metal) {
+            super(150,10, 100);
+            this.owner = City.this.leader;
+            this.metal = metal;
+        }
+
+        @Override
+        public int getMaxNumWorkers(){
+            return this.level * super.getMaxNumWorkers() / this.maxLevel;
+        }
+
+        @Override
+        public boolean acceptingWorkers(){
+            return getNumWorkers() < getMaxNumWorkers();
+        }
+
+        @Override
+        public boolean addWorker(Person worker) {
+            if(!acceptingWorkers() || worker.hasJob()){
+                return false;
             }
-            this.owner = owner;
-            this.ownersSpouse = owner.getPartner();
-            owner.setHoused(true);
-            ownersSpouse.setHoused(true);
-            childInhabitants = new ArrayList<>();
-            for(Person person: owner.getChildren()){
-                if(person.getAge() < person.getRace().getReproductionAge()){
-                    person.setHoused(true);
-                    childInhabitants.add(person);
+            workers.add(worker);
+            worker.hire(Job.instantiateJobs().get(2));
+            return true;
+        }
+
+        public int getOutputPerWorker(){
+            return this.outputPerWorker * this.level / this.maxLevel;
+        }
+
+        public int getOutput(){
+            return getOutputPerWorker() * getNumWorkers();
+        }
+
+        public Metal getMetal(){
+            return metal;
+        }
+
+        @Override
+        public void age() {
+
+            ArrayList<Person> workersToRemove = new ArrayList<>();
+
+            for(Person worker : workers){
+                if(!worker.hasJob()){
+                    worker.hire(Job.instantiateJobs().get(2));
+                }if(!worker.isAlive() || worker.isChild() || worker.isElderly()){
+                    workersToRemove.add(worker);
+                    worker.fire();
                 }
-            }for(Person person: ownersSpouse.getChildren()){
-                if(person.getAge() < person.getRace().getReproductionAge()){
-                    person.setHoused(true);
-                    childInhabitants.add(person);
-                }
+            }
+
+            workers.removeAll(workersToRemove);
+
+        }
+
+        @Override
+        public void ageYear() {
+            for(int i = 0; i < 52; i++){
+                this.age();
             }
         }
 
-        public boolean addOwner(Person owner){
-            if(!owner.isHoused()){
-                owner.setHoused(true);
-                ownersSpouse.setHoused(true);
-                childInhabitants = new ArrayList<>();
-                for(Person person: owner.getChildren()){
-                    if(person.getAge() < person.getRace().getReproductionAge()){
-                        person.setHoused(true);
-                        childInhabitants.add(person);
-                    }
-                }for(Person person: ownersSpouse.getChildren()){
-                    if(person.getAge() < person.getRace().getReproductionAge()){
-                        person.setHoused(true);
-                    }
-                }
-            }
-            return false;
-        }
-
-        public void age(){
-
-            ArrayList<Person> childrenToBeRemoved = new ArrayList<>();
-
-            for(Person person : childInhabitants){
-                if(!person.isAlive() || person.getAge() >= person.getRace().getReproductionAge()){
-                    childrenToBeRemoved.add(person);
-                    person.setHoused(false);
-                }
-            }
-
-            childInhabitants.removeAll(childrenToBeRemoved);
-            childrenToBeRemoved.clear();
-
-            if(!owner.isAlive()){
-                if(ownersSpouse.isAlive()){
-                    owner = ownersSpouse;
-                    ownersSpouse = null;
-                }
-            }
+        @Override
+        public int getAgeInYears() {
+            return this.age / 52;
         }
 
     }
 
+    public class Barracks extends Organization {
+
+        public Barracks() {
+            super(City.this, City.this.getSize());
+        }
+
+        @Override
+        public boolean acceptingWorkers() {
+            return true;
+        }
+
+        @Override
+        public boolean addWorker(Person worker) {
+            if(worker.hasJob() || worker.isElderly() || !worker.isAlive() || worker.isChild()) {
+                return false;
+            }
+            workers.add(worker);
+            worker.hire(Job.instantiateJobs().get(6));
+            return true;
+        }
+
+        @Override
+        public void age() {
+            resize(City.this.getSize());
+            ArrayList<Person> workersToRemove = new ArrayList<>();
+            for(Person worker : workers){
+                if(!worker.isAlive() || worker.isChild() || worker.isElderly()){
+                    workersToRemove.add(worker);
+                    worker.fire();
+                }
+            }
+            workers.removeAll(workersToRemove);
+        }
+
+        @Override
+        public void ageYear() {
+            for(int i = 0; i < 52; i++){
+                this.age();
+            }
+        }
+
+        @Override
+        public int getAgeInYears() {
+            return age / 52;
+        }
+    }
+
+    public class Orphanage extends Organization {
+
+        private ArrayList<Person> orphans;
+
+        private House orphanageHall;
+
+        public Orphanage() {
+            super(City.this, 0);
+            orphanageHall = new House(true);
+            this.orphans = new ArrayList<>();
+            for(Person person : city.people){
+                if(person.isChild() && (person.getFather() == null || !person.getFather().isAlive()) && (person.getMother() == null || !person.getMother().isAlive())){
+                    orphans.add(person);
+                    person.occupyHouse(orphanageHall);
+                }
+            }
+            this.resize(getNumOrphans() / 5);
+        }
+
+        @Override
+        public int getMaxNumWorkers(){
+            return orphans.size() / 5;
+        }
+
+        @Override
+        public boolean acceptingWorkers(){
+            return getNumWorkers() < getMaxNumWorkers();
+        }
+
+        @Override
+        public boolean addWorker(Person worker){
+            if(!this.acceptingWorkers() || worker.hasJob()){
+                return false;
+            }
+            this.workers.add(worker);
+            worker.hire(Job.instantiateJobs().get(0));
+            return true;
+        }
+
+        public ArrayList<Person> getOrphans(){
+            return this.orphans;
+        }
+
+        public int getNumOrphans(){
+            return this.orphans.size();
+        }
+
+        @Override
+        public void age() {
+
+            ArrayList<Person> adultOrphans = new ArrayList<>();
+
+            for(int i = 0; i < orphans.size(); i++){
+                if(orphans.get(i).isAdult() || !orphans.get(i).isAlive()){
+                    adultOrphans.add(orphans.get(i));
+                    orphans.get(i).loseHouse();
+                }
+            }
+
+            orphans.removeAll(adultOrphans);
+
+            ArrayList<Person> newOrphans = new ArrayList<>();
+
+            for(Person person : City.this.humans.getPeople()){
+                if(person.getAge() < person.getRace().getReproductionAge() && !person.isHoused() && person.isAlive() && !person.hasFather() && !person.hasMother()){
+                    newOrphans.add(person);
+                    person.occupyHouse(orphanageHall);
+                }
+            }for(Person person : City.this.dwarves.getPeople()){
+                if(person.getAge() < person.getRace().getReproductionAge() && !person.isHoused() && person.isAlive()){
+                    newOrphans.add(person);
+                    person.occupyHouse(orphanageHall);
+                }
+            }for(Person person : City.this.elves.getPeople()){
+                if(person.getAge() <  person.getRace().getReproductionAge() && !person.isHoused() && person.isAlive()){
+                    newOrphans.add(person);
+                    person.occupyHouse(orphanageHall);
+                }
+            }for(Person person : City.this.orcs.getPeople()){
+                if(person.getAge() < person.getRace().getReproductionAge() && !person.isHoused() && person.isAlive()){
+                    newOrphans.add(person);
+                    person.occupyHouse(orphanageHall);
+                }
+            }
+            orphans.addAll(newOrphans);
+            int workersSize = orphans.size() / 5;
+            if(workersSize != getMaxNumWorkers()){
+                resize(workersSize);
+            }
+
+            ArrayList<Person> workersToRemove = new ArrayList<>();
+
+
+            if(!workers.isEmpty()) {
+                for (int i = 0; i < workers.size(); i++) {
+                    if (!workers.get(i).isAlive() || workers.get(i).isElderly() || workers.get(i).isChild()) {
+                        workersToRemove.add(workers.get(i));
+                        workers.get(i).fire();
+                    }
+                }
+            }
+
+            workers.removeAll(workersToRemove);
+
+            resize(getNumOrphans() / 5);
+
+        }
+
+        @Override
+        public void ageYear() {
+            for(int i = 0; i < 52; i++){
+                this.age();
+            }
+        }
+
+        @Override
+        public int getAgeInYears() {
+            return this.age / 52;
+        }
+    }
+
+    public class Blacksmith extends Tributary {
+
+        public Blacksmith() {
+            super(10, 10,1);
+        }
+
+        @Override
+        public boolean acceptingWorkers() {
+            return getNumWorkers() < this.level;
+        }
+
+        @Override
+        public boolean addWorker(Person worker) {
+            if(!this.acceptingWorkers() || worker.hasJob()){
+                return false;
+            }
+            this.workers.add(worker);
+            worker.hire(Job.instantiateJobs().get(7));
+            return true;
+        }
+
+        @Override
+        public void age() {
+
+            ArrayList<Person> workersToRemove = new ArrayList<>();
+
+            for(Person person : this.workers){
+                if(!person.isAlive() || person.isChild() || person.isElderly()){
+                    person.fire();
+                    workersToRemove.add(person);
+                }else{
+                    this.exp += this.getNumWorkers();
+                    levelUp();
+                }
+            }
+
+            workers.removeAll(workersToRemove);
+
+        }
+
+        @Override
+        public void ageYear() {
+            for(int i = 0; i < 52; i++){
+                this.age();
+            }
+        }
+
+        @Override
+        public int getAgeInYears() {
+            return this.age / 52;
+        }
+
+        @Override
+        public int getOutputPerWorker() {
+            return 1;
+        }
+    }
+
+    public class BuildersGuild extends Organization {
+
+        private ArrayList<Team> teams;
+        private ArrayList<Boolean> onTeam;
+        private ArrayList<Farm> workingFarms;
+
+        public BuildersGuild() {
+            super(City.this, City.this.getSize() / 5);
+            teams = new ArrayList<>();
+            onTeam = new ArrayList<>();
+            workingFarms = new ArrayList<>();
+        }
+
+        @Override
+        public boolean acceptingWorkers() {
+            return this.getNumWorkers() < this.maxNumWorkers;
+        }
+
+        @Override
+        public boolean addWorker(Person worker) {
+            if(worker.isChild() || worker.isElderly() || !worker.isAlive() || !acceptingWorkers()){
+                return false;
+            }
+            worker.hire(Job.instantiateJobs().get(5));
+            workers.addLast(worker);
+            onTeam.addLast(false);
+            return true;
+        }
+
+        public ArrayList<Team> getTeams() {
+            return teams;
+        }
+
+        public int getNumTeams(){
+            return teams.size();
+        }
+
+        public int getNumWorkingTeams(){
+            int num = 0;
+            for(Team team : teams){
+                if(team.canWork()){
+                    num++;
+                }
+            }
+            return num;
+        }
+
+        @Override
+        public void age() {
+
+            this.resize(city.getSize() / 5);
+
+            // 1. CLEAN WORKERS IN PLACE + SYNC onTeam + FIRE DEAD
+            for (int i = workers.size() - 1; i >= 0; i--) {
+                Person w = workers.get(i);
+
+                // dead, child, or elderly -> remove from guild and clear job
+                if (!w.isAlive() || w.isChild() || w.isElderly()) {
+                    w.fire();              // clear their job
+                    workers.remove(i);     // remove from guild
+                    onTeam.remove(i);      // keep parallel structure in sync
+                }
+            }
+
+            // 2. CLEAN TEAMS (remove dead / invalid members)
+            for (Team t : teams) {
+                t.age(); // make sure this nulls or drops dead workers internally
+            }
+
+            // 3. COLLECT FREE WORKERS (those not on a team)
+            ArrayList<Person> freeWorkers = new ArrayList<>();
+            for (int i = 0; i < workers.size(); i++) {
+                if (!onTeam.get(i)) {
+                    freeWorkers.add(workers.get(i));
+                }
+            }
+
+            // 4. FILL EXISTING TEAM SLOTS
+            for (Team t : teams) {
+                for (Person w : new ArrayList<>(freeWorkers)) {
+                    if (t.addWorker(w)) {
+                        int idx = workers.indexOf(w);
+                        if (idx != -1) {
+                            onTeam.set(idx, true);
+                        }
+                        freeWorkers.remove(w);
+                    }
+                }
+            }
+
+            // 5. CREATE NEW TEAMS FROM LEFTOVERS
+            while (freeWorkers.size() >= 5) {
+                Person w1 = freeWorkers.remove(0);
+                Person w2 = freeWorkers.remove(0);
+                Person w3 = freeWorkers.remove(0);
+                Person w4 = freeWorkers.remove(0);
+                Person w5 = freeWorkers.remove(0);
+
+                Team newTeam = new Team(
+                        w1, w2, w3, w4, w5
+                        //EventPicker.pick(BuildersGuild.this.instantiateProjects())
+                );
+                teams.add(newTeam);
+
+                for (Person w : newTeam.getWorkers()) {
+                    int idx = workers.indexOf(w);
+                    if (idx != -1) {
+                        onTeam.set(idx, true);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void ageYear() {
+            for (int i = 0; i < 52; i++){
+                this.age();
+            }
+        }
+
+        @Override
+        public int getAgeInYears() {
+            return this.age / 52;
+        }
+
+        public class Project implements Ageable{
+
+            private Entity project;
+            private int weeksWorked;
+            private int weeksToComplete;
+
+            public Project(Farm project){
+                this.project = project;
+                this.weeksWorked = 0;
+                this.weeksToComplete = 10;
+            }
+
+            public Project(Mine project){
+                this.project = project;
+                this.weeksWorked = 0;
+                this.weeksToComplete = 15;
+            }
+
+            public Project(House project){
+                this.project = project;
+                this.weeksWorked = 0;
+                this.weeksToComplete = 5;
+            }
+
+            public Project(Blacksmith project){
+                this.project = project;
+                this.weeksWorked = 0;
+                this.weeksToComplete = 10;
+            }
+
+
+            @Override
+            public void age() {
+                this.weeksWorked++;
+                if(this.weeksWorked >= this.weeksToComplete){
+                    if(project instanceof Farm){
+                        city.farms.add((Farm)project);
+                    }else if(project instanceof House){
+                        ((House)project).setLivable(true);
+                    }else if(project instanceof Mine){
+                        city.mines.add((Mine)project);
+                    }else if(project instanceof Blacksmith){
+                        city.blacksmiths.add((Blacksmith)project);
+                    }
+                }
+            }
+
+            @Override
+            public void ageYear() {
+                while(weeksWorked < weeksToComplete){
+                    age();
+                }
+            }
+
+            @Override
+            public int getAge() {
+                return weeksWorked;
+            }
+
+            @Override
+            public int getAgeInYears() {
+                return weeksWorked / 52;
+            }
+
+            public boolean isComplete(){
+                return this.weeksWorked >= this.weeksToComplete;
+            }
+
+        }
+
+        public class Team{
+
+            private Person worker1;
+            private Person worker2;
+            private Person worker3;
+            private Person worker4;
+            private Person worker5;
+            private Project project;
+
+            private int weeksWorked;
+
+            public Team(Person worker1, Person worker2, Person worker3, Person worker4, Person worker5) {
+
+                if(worker1 == null || !worker1.isAlive() || worker2 == null || !worker2.isAlive() || worker3 == null || !worker3.isAlive() || worker4 == null || !worker4.isAlive() || worker5 == null  || !worker5.isAlive()){
+                    throw new IllegalArgumentException("Team member is dead or null");
+                }
+
+                this.worker1 = worker1;
+                this.worker2 = worker2;
+                this.worker3 = worker3;
+                this.worker4 = worker4;
+                this.worker5 = worker5;
+
+                //this.project = project;
+
+                this.weeksWorked = 0;
+
+            }
+
+            public Person[] getWorkers(){
+                return new Person[]{worker1, worker2, worker3, worker4, worker5};
+            }
+
+            public boolean acceptingWorkers(){
+                return worker1 != null && worker2 != null && worker3 != null && worker4 != null && worker5 != null && worker1.isAlive() && worker2.isAlive() && worker3.isAlive() && worker4.isAlive() && worker5.isAlive();
+            }
+
+            public boolean addWorker(Person worker){
+                if(!acceptingWorkers() || !worker.getJob().equals(Job.instantiateJobs().get(5))){
+                    return false;
+                }
+                if(worker1 == null || !worker1.isAlive()){
+                    worker1 = worker;
+                    return true;
+                }else if(worker2 == null || !worker2.isAlive()){
+                    worker2 = worker;
+                    return true;
+                }else if(worker3 == null || !worker3.isAlive()){
+                    worker3 = worker;
+                    return true;
+                }else if(worker4 == null || !worker4.isAlive()){
+                    worker4 = worker;
+                    return true;
+                }else if(worker5 == null || !worker5.isAlive()){
+                    worker5 = worker;
+                    return true;
+                }else{
+                    //System.out.println("Can not find a spot for worker");
+                    return false;
+                }
+            }
+
+            public boolean canWork(){
+                int score = 0;
+                if(worker1 != null && worker1.isAlive()){
+                    score++;
+                }if(worker2 != null && worker2.isAlive()){
+                    score++;
+                }if(worker3 != null && worker3.isAlive()){
+                    score++;
+                }if(worker4 != null && worker4.isAlive()){
+                    score++;
+                }if(worker5 != null && worker5.isAlive()){
+                    score++;
+                }
+                return score >= 3;
+            }
+
+            public void age(){
+
+                if(project == null || project.isComplete()){
+                    this.assignProject();
+                }
+
+                if(worker1 == null || !worker1.isAlive()){
+                    worker1 = null;
+                }if(worker2 == null || !worker2.isAlive()){
+                    worker2 = null;
+                }if(worker3 == null || !worker3.isAlive()){
+                    worker3 = null;
+                }if(worker4 == null || !worker4.isAlive()){
+                    worker4 = null;
+                }if(worker5 == null || !worker5.isAlive()){
+                    worker5 = null;
+                }
+
+                project.age();
+
+                this.weeksWorked++;
+
+            }
+
+            public void assignProject(){
+
+                boolean acceptingHouses = false;
+
+                for(Farm farm : city.farms){
+                    if(farm.acceptingHouses()){
+                        acceptingHouses = true;
+                    }
+                }
+
+                ArrayList<Entity> possibleProjects = new ArrayList<>();
+                possibleProjects.add(new House(false));
+                possibleProjects.add(new Farm());
+                possibleProjects.add(new Mine());
+                possibleProjects.add(new Blacksmith());
+
+                Entity project = EventPicker.pick(possibleProjects);
+
+                if(project instanceof House){
+                    Farm farm = null;
+                    int count = 0;
+                    while(farm == null && count < city.getFarms().size()){
+                        if(city.getFarms().get(count).acceptingHouses()){
+                            farm = city.getFarms().get(count);
+                            farm.addHouse();
+                            this.project = new Project((House)project);
+                        }
+                        count++;
+                    }
+                }else if(project instanceof Mine){
+                    this.project = new Project((Mine)project);
+                }else if(project instanceof Blacksmith){
+                    this.project = new Project((Blacksmith)project);
+                }else if(project instanceof Farm){
+                    this.project = new Project((Farm)project);
+                }
+
+            }
+
+        }
+
+    }
+
+    public static void main(String[] args){
+        City humanCity = new City(150, 0,0,0);
+        int age = 0;
+        boolean repeat = true;
+        while(repeat){
+
+            //System.out.println("Age: " + age + " Num Children: " + humanCity.getHumans().getNumChildren() + " Size: " + humanCity.getSize() + " Food: " + humanCity.getExcessFood() + " City gold: " + humanCity.cityGold + " Number of farmers: " + humanCity.getNumFarmers() + " Number of miners: " + humanCity.getNumMiners() + " Number blacksmiths: " + humanCity.getNumBlacksmiths() + " Number Orphanage Workers: " + humanCity.getNumOrphanageWorkers() + " Number Construction Workers : " + humanCity.getNumConstructionWorkers() + " Number Soldiers: " + humanCity.getNumSoldiers() + " Number of jobless: " + humanCity.getNumNotWorking());
+
+            System.out.println("Age: " + age);
+
+            System.out.println("\nPopulation size: " + humanCity.getSize());
+            System.out.println("Number dead people: " + humanCity.getNumDead());
+
+            System.out.println("Num Leaders: " + (humanCity.leader == null ? 0 : 1));
+
+            System.out.println("\nNumber Farmers: " + humanCity.getNumFarmers());
+            System.out.println("Number of Farms : " + humanCity.getFarms().size());
+
+            System.out.println("\nNumber of miners: " + humanCity.getNumMiners());
+            System.out.println("Number of mines: " + humanCity.getMines().size());
+
+            System.out.println("\nNumber of Soldiers: " + humanCity.getNumSoldiers());
+
+            System.out.println("\nNumber of Construction Workers: " + humanCity.getNumConstructionWorkers());
+
+            System.out.println("\nNumber of orphanage workers: " + humanCity.getNumOrphanageWorkers());
+            System.out.println("Number of Orphans: "  + humanCity.getNumOrphans());
+            System.out.println("Number of non Orphans: " + humanCity.getNumNonOrphans());
+
+            System.out.println("\nNumber of blacksmiths: " + humanCity.getNumBlacksmiths());
+            System.out.println("Number of blacksmith buildings: " + humanCity.getBlacksmiths().size());
+
+            System.out.println("\nFood: " + humanCity.getExcessFood());
+
+            System.out.println("\nMoney: " + humanCity.cityGold);
+
+            System.out.println("\nNumber of Children: " + humanCity.getNumChildren());
+            System.out.println("Number of adults: " + humanCity.getNumAdults());
+            System.out.println("Number of Elderly: " + humanCity.getNumElderly());
+
+            System.out.println("\nNumber jobless: " + humanCity.getNumNotWorking());
+
+            //humanCity.age();
+
+            //age++;
+
+            Scanner scan = new Scanner(System.in);
+            String choice = scan.next();
+            if(choice.equals("a")){
+                humanCity.age();
+                age++;
+            }else if(choice.equals("y")){
+                humanCity.ageYear();
+                age+=52;
+            }else if(choice.equals("h")){
+                humanCity.age100Years();
+                age+=(100*52);
+            }else{
+                repeat = false;
+            }
+
+        }
+    }
 
 }
+
+
+/*
+O(1) Constant
+O(log(n)) logrithmic
+O(log^k(n)) poly log
+O(N^c) sub linear
+O(N) Linear
+O(N^2) Quadratic
+O(N^3) Cubic
+O(N^k) polynomial
+O(C^N) exponential
+O(N!) factorial
+ */

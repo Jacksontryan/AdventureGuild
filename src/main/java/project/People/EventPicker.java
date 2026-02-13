@@ -1,4 +1,4 @@
-package project.People.PeopleTesting;
+package project.People;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -343,6 +343,42 @@ public class EventPicker {
         }else{
             return false;
         }
+    }
+
+    public int d3(){
+        return new Random().nextInt(1,4);
+    }
+
+    public int d4(){
+        return new Random().nextInt(1,5);
+    }
+
+    public int d6(){
+        return new Random().nextInt(1,7);
+    }
+
+    public int d8(){
+        return new Random().nextInt(1,9);
+    }
+
+    public int d10(){
+        return new Random().nextInt(1,11);
+    }
+
+    public int d12(){
+        return new Random().nextInt(1,13);
+    }
+
+    public int d20(){
+        return new Random().nextInt(1,21);
+    }
+
+    public int d50(){
+        return new Random().nextInt(1,51);
+    }
+
+    public int d100(){
+        return new Random().nextInt(1,101);
     }
 
 }

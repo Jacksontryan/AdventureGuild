@@ -1,4 +1,4 @@
-package project.People.PeopleTesting;
+package project.People;
 
 public enum Sex {
 

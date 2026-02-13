@@ -32,8 +32,8 @@ public class MapTesting extends Application {
         primaryStage.show();
         double width = primaryStage.getWidth();
         double height = primaryStage.getHeight();
-        int mapWidth = 1500;
-        int mapHeight = 1000;
+        int mapWidth = 3000;
+        int mapHeight = 2000;
 
         final Map[] map = {new Map(mapWidth, mapHeight, .3)};
         System.out.println("Map width: " + map[0].getWidth() + " height: " + map[0].getHeight());

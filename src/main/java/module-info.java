@@ -10,5 +10,7 @@ module AdventureGuild {
     opens project.Map to javafx.fxml, javafx.graphics;
     exports project.People;
     opens project.People to javafx.fxml, javafx.graphics;
+    exports project.People.PeopleTesting;
+    opens project.People.PeopleTesting to javafx.fxml, javafx.graphics;
 
 }

@@ -27,9 +27,13 @@ public class House implements Ageable {
 
     @Override
     public void age() {
-        this.age++;
-        if((this.family != null) && (this.family.getFirstPartner() == null || !this.family.getFirstPartner().isAlive()) && (this.family.getSecondPartner() == null || !this.family.getSecondPartner().isAlive())){
-            family = null;
+        if(isHabitable()) {
+            this.age++;
+            if ((this.family != null) && (this.family.getFirstPartner() == null || !this.family.getFirstPartner().isAlive()) && (this.family.getSecondPartner() == null || !this.family.getSecondPartner().isAlive())) {
+                family = null;
+            }
+        }else{
+            this.family = null;
         }
     }
 

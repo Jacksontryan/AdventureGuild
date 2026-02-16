@@ -6,12 +6,13 @@ import java.util.ArrayList;
 
 public class DispositionChart implements Ageable {
 
-    private Person person;
+    private Person self;
 
     private final ArrayList<Person> relationships;
     private final ArrayList<Integer> dispositions;
 
-    public DispositionChart(){
+    public DispositionChart(Person self){
+        this.self = self;
         this.relationships = new ArrayList<>();
         this.dispositions = new ArrayList<>();
     }
@@ -39,20 +40,12 @@ public class DispositionChart implements Ageable {
     @Override
     public void age() {
 
-        for(int i = 0; i < this.relationships.size(); i++){
-
-            if(!this.relationships.get(i).isAlive()){
-                this.relationships.remove(i);
-                this.dispositions.remove(i);
+        for (int i = relationships.size() - 1; i >= 0; i--) {
+            if (!relationships.get(i).isAlive()) {
+                relationships.remove(i);
+                dispositions.remove(i);
             }
-
         }
-
-        if(dispositions.size() != relationships.size()){
-            dispositions.clear();
-            relationships.clear();
-        }
-
     }
 
     @Override
@@ -66,11 +59,11 @@ public class DispositionChart implements Ageable {
 
     @Override
     public int getAge() {
-        return person.getAge();
+        return self.getAge();
     }
 
     @Override
     public int getAgeInYears() {
-        return person.getAgeInYears();
+        return self.getAgeInYears();
     }
 }
